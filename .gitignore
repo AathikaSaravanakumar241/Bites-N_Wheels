@@ -1,5 +1,5 @@
 HELP.md
-target/
+backend/target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -32,4 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 
+<<<<<<< HEAD:server/.gitignore
 **/src/main/resources/application.properties
+=======
+# Environment / secrets
+.env
+.env.*
+**/application-local.properties
+**/application-local.yml
+>>>>>>> 07a9e5102811338308a977cbf51aef0955dd391c:.gitignore
