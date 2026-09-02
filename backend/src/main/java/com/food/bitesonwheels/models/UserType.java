@@ -1,5 +1,6 @@
 package com.food.bitesonwheels.models;
-public class UserType {
-    
-    
+public enum UserType {
+    CUSTOMER,
+    TRUCK_OWNER,
+    ADMIN
 }
