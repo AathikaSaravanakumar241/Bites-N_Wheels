@@ -3,6 +3,7 @@ package com.food.bitesonwheels.models;
 import com.food.bitesonwheels.models.enums.FoodType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,10 +42,22 @@ public class MenuItem {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(name = "is_available", nullable = false)
+    @Column(name = "available", nullable = false)
     @Builder.Default
-    private Boolean isAvailable = true;
+    private Boolean available = true;
 
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private OffsetDateTime createdAt;
+
+    @Column(name = "category_tag", length = 100)
+    private String categoryTag;
+
+    @Column(name = "stock_quantity", nullable = false)
+    @Builder.Default
+    private Integer stockQuantity = 0;
+
+    @Column(name = "available_from")
+    private LocalTime availableFrom;
+
+    
 }

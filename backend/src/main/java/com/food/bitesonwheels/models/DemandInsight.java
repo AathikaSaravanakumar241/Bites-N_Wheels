@@ -1,8 +1,8 @@
 package com.food.bitesonwheels.models;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,18 +28,21 @@ public class DemandInsight {
     private Truck truck;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "item_id", nullable = false)
-    private MenuItem item;
+    @JoinColumn(name = "station_id", nullable = false)
+    private Station station;
 
-    @Column(name = "insight_date", nullable = false)
-    private LocalDate insightDate;
+    @Column(name = "period_start", nullable = false)
+    private LocalDate periodStart;
 
-    @Column(name = "predicted_demand", nullable = false)
-    private Integer predictedDemand;
+    @Column(name = "period_end", nullable = false)
+    private LocalDate periodEnd;
 
-    @Column(name = "actual_demand")
-    private Integer actualDemand;
+    @Column(name = "metric", nullable = false, columnDefinition = "text")
+    private String metric;
 
-    @Column(name = "confidence_score", precision = 5, scale = 4)
-    private BigDecimal confidenceScore;
+    @Column(name = "suggestion", columnDefinition = "text")
+    private String suggestion;
+
+    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    private OffsetDateTime createdAt;
 }
