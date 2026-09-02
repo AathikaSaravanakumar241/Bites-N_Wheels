@@ -1,27 +1,49 @@
 package com.food.bitesonwheels.models;
-import  lombok.Data;
+import com.food.bitesonwheels.models.enums.Role;
+import com.food.bitesonwheels.models.enums.UserStatus;
+import jakarta.persistence.*;
+import java.time.OffsetDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Entity
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
-    private Long UserId;
-    private String name ;
-    private String email ;
-    private int phone ;
-    private String password ;
-    private UserStatus status ;
-    public UserType role ;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Long userId;
 
-    User(Long UserId, String name, String email, int phone, String password, UserType role, UserStatus status) {
-        this.UserId = UserId;
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.password = password;
-        this.role = role;
-        this.status = status;
-    }
+    @Column(nullable = false, length = 100)
+    private String name;
 
-   
-    
+    @Column(nullable = false, unique = true, length = 150)
+    private String email;
+
+    @Column(unique = true, length = 20)
+    private String phone;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    private OffsetDateTime createdAt;
 }

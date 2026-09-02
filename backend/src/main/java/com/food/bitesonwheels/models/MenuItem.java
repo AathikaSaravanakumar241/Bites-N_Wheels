@@ -1,24 +1,50 @@
 package com.food.bitesonwheels.models;
 
-public class MenuItem {
-    private Long item_id;
-    private Long menu_id;
-    private String name;
-    private String description;
-    private double price;
-    private String category_tag;
-    private String food_type;
-    private boolean available;
+import com.food.bitesonwheels.models.enums.FoodType;
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    MenuItem(Long item_id, Long menu_id, String name, String description, double price, String category_tag, String food_type, boolean available) {
-        this.item_id = item_id;
-        this.menu_id = menu_id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.category_tag = category_tag;
-        this.food_type = food_type;
-        this.available = available;
-    }
-    
+@Entity
+@Table(name = "menu_item")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MenuItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "item_id")
+    private Long itemId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "truck_id", nullable = false)
+    private Truck truck;
+
+    @Column(nullable = false, length = 120)
+    private String name;
+
+    @Column(columnDefinition = "text")
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "food_type", nullable = false, length = 10)
+    private FoodType foodType;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "is_available", nullable = false)
+    @Builder.Default
+    private Boolean isAvailable = true;
+
+    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    private OffsetDateTime createdAt;
 }

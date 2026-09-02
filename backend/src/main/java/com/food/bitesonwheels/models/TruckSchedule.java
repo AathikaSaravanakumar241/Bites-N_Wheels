@@ -1,26 +1,48 @@
 package com.food.bitesonwheels.models;
+
+import com.food.bitesonwheels.models.enums.ScheduleStatus;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Entity
+@Table(name = "truck_schedule")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TruckSchedule {
-    private Long schedule_id ;
-    private Long truck_id ;
-    private Long station_id ;
-    private LocalDate service_date ;
-    private LocalTime arrival_time ;
-    private LocalTime departure_time ;
-    private UserStatus status ;
 
-    public TruckSchedule(Long schedule_id, Long truck_id, Long station_id, LocalDate service_date, LocalTime arrival_time, LocalTime departure_time, UserStatus status) {
-        this.schedule_id = schedule_id;
-        this.truck_id = truck_id;
-        this.station_id = station_id;
-        this.service_date = service_date;
-        this.arrival_time = arrival_time;
-        this.departure_time = departure_time;
-        this.status = status;
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "schedule_id")
+    private Long scheduleId;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "truck_id", nullable = false)
+    private Truck truck;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "station_id", nullable = false)
+    private Station station;
+
+    @Column(name = "service_date", nullable = false)
+    private LocalDate serviceDate;
+
+    @Column(name = "arrival_time", nullable = false)
+    private LocalTime arrivalTime;
+
+    @Column(name = "departure_time")
+    private LocalTime departureTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private ScheduleStatus status = ScheduleStatus.PLANNED;
 }
