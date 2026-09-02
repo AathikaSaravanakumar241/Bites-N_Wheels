@@ -1,10 +1,15 @@
+# =========================
+# Java / Spring Boot
+# =========================
 HELP.md
-backend/target/
+**/target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# =========================
+# STS
+# =========================
 .apt_generated
 .classpath
 .factorypath
@@ -13,13 +18,17 @@ backend/target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# =========================
+# IntelliJ IDEA
+# =========================
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# =========================
+# NetBeans
+# =========================
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,15 +38,35 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# =========================
+# VS Code
+# =========================
 .vscode/
 
-<<<<<<< HEAD:server/.gitignore
-**/src/main/resources/application.properties
-=======
+# =========================
+# Node / React / Vite
+# =========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================
 # Environment / secrets
+# =========================
 .env
 .env.*
 **/application-local.properties
 **/application-local.yml
->>>>>>> 07a9e5102811338308a977cbf51aef0955dd391c:.gitignore
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
