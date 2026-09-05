@@ -201,3 +201,204 @@ a {
   height: auto;
   display: block;
 }
+/* ---------------------------------------------------------------
+   TRUCK OWNER DASHBOARD STYLES
+   --------------------------------------------------------------- */
+
+.truck-dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+}
+
+.dashboard-sidebar {
+  width: 240px;
+  background: #1e222a;
+  color: #ffffff;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand);
+  margin-bottom: var(--space-5);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: #a0a8b0;
+  padding: 12px var(--space-3);
+  text-align: left;
+  font: 600 15px var(--sans);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.nav-btn.active {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: var(--space-4);
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+/* Panels and Cards */
+.card-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow);
+}
+
+.subtext {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.grid-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+/* Status Controls & Pills */
+.status-selector {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.status-pill {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-pill.active { background: var(--brand-soft); color: var(--brand-ink); }
+.status-pill.breakdown { background: #fee2e2; color: var(--danger); }
+.status-pill.closed { background: var(--border); color: var(--text-muted); }
+
+/* Stats Overview */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.stat-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.stat-card h4 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  margin: var(--space-1) 0 0 0;
+}
+
+/* Data Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.btn-toggle {
+  border: none;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-toggle.on { background: #dcfce7; color: var(--success); }
+.btn-toggle.off { background: var(--border); color: var(--text-muted); }
+
+/* Route Warnings */
+.warning-box {
+  margin-top: 4px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Orders List */
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.badge {
+  font-weight: 700;
+  color: var(--brand-ink);
+}
+
+/* POS Inputs */
+.card-panel select, .card-panel input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.insight-box {
+  background: var(--brand-soft);
+  border: 1px solid var(--brand);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--brand-ink);
+}
