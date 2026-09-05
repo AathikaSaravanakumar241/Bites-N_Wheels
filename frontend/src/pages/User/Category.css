@@ -1,0 +1,302 @@
+/* Uses only tokens from index.css. */
+
+.cp { min-height: 100vh; background: var(--bg); }
+
+/* ---------------- TOP BAR ---------------- */
+
+.cp-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.cp-bar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.cp-back {
+  color: var(--brand-ink);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.cp-back:hover { text-decoration: underline; }
+
+.cp-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 24px;
+}
+
+.cp-sub { color: var(--text-muted); font-size: 14px; }
+
+.cp-cart {
+  margin-left: auto;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  color: #fff;
+  font: 600 15px var(--sans);
+  cursor: pointer;
+}
+
+.cp-cart:hover { background: var(--brand-hover); }
+
+/* ---------------- LAYOUT ---------------- */
+
+.cp-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3) var(--space-5);
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* ---------------- LEFT TRUCK LIST ---------------- */
+
+.cp-trucks { position: sticky; top: 84px; }
+
+.cp-side-title {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.cp-truck {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  text-align: left;
+  cursor: pointer;
+  font: 14px var(--sans);
+  color: var(--text);
+}
+
+.cp-truck:hover { background: var(--surface); }
+
+.cp-truck.is-active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.cp-truck-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cp-truck-name { font-weight: 700; font-size: 15px; }
+
+.cp-fastest {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--success);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cp-truck-tagline { color: var(--text-muted); font-size: 13px; }
+
+.cp-truck-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.cp-eta { color: var(--text); font-weight: 700; }
+
+/* ---------------- DISHES ---------------- */
+
+.cp-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: 20px;
+}
+
+.cp-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cp-note {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.cp-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--brand-ink);
+  font: 600 14px var(--sans);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.cp-dishes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+}
+
+.cp-dish {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.cp-dish:hover { box-shadow: var(--shadow); }
+
+.cp-dish-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cp-dish-head h3 { margin: 0; font-size: 16px; }
+
+.cp-veg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 2px solid var(--success);
+  border-radius: 2px;
+  position: relative;
+}
+
+.cp-veg::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.cp-veg.is-nonveg { border-color: var(--danger); }
+.cp-veg.is-nonveg::after { background: var(--danger); }
+
+.cp-dish-desc {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  flex: 1;
+}
+
+.cp-dish-truck {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+
+.cp-dish-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.cp-price { font-size: 16px; font-weight: 700; }
+
+.cp-add {
+  padding: 7px 18px;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--brand-ink);
+  font: 700 14px var(--sans);
+  cursor: pointer;
+}
+
+.cp-add:hover { background: var(--brand-soft); }
+
+.cp-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.cp-stepper button {
+  width: 30px;
+  height: 32px;
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  font: 700 16px var(--sans);
+  cursor: pointer;
+}
+
+.cp-stepper button:hover { background: var(--brand-hover); }
+
+.cp-stepper span {
+  min-width: 26px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.cp-more {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.cp-empty {
+  padding: var(--space-5) var(--space-3);
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 900px) {
+  .cp-main { grid-template-columns: 1fr; }
+  .cp-trucks { position: static; }
+}
