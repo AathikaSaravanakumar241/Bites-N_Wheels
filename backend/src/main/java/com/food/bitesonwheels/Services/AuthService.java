@@ -1,9 +1,13 @@
 package com.food.bitesonwheels.Services;
 
+import com.food.bitesonwheels.Repository.TruckRepository;
 import com.food.bitesonwheels.Repository.UserRepository;
 import com.food.bitesonwheels.config.JwtUtil;
 import com.food.bitesonwheels.dto.*;
+import com.food.bitesonwheels.models.Truck;
 import com.food.bitesonwheels.models.User;
+import com.food.bitesonwheels.models.enums.Role;
+import com.food.bitesonwheels.models.enums.TruckStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final TruckRepository truckRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -26,6 +31,11 @@ public class AuthService {
             throw new RuntimeException("Email already registered");
         }
 
+        // Check if phone already exists
+        if (userRepository.existsByPhone(request.getPhone())) {
+            throw new RuntimeException("Phone number already registered");
+        }
+
         // Save the new user (password is hashed before saving)
         User user = User.builder()
                 .name(request.getName())
@@ -35,7 +45,18 @@ public class AuthService {
                 .role(request.getRole())
                 .build();
 
-        userRepository.save(user);
+        user = userRepository.save(user);
+
+        // Auto-create a default Truck if registered as TRUCK_OWNER
+        if (request.getRole() == Role.TRUCK_OWNER) {
+            Truck defaultTruck = Truck.builder()
+                    .owner(user)
+                    .name(request.getName() + "'s Food Truck")
+                    .tagline("Fresh & Tasty On Wheels")
+                    .status(TruckStatus.ACTIVE)
+                    .build();
+            truckRepository.save(defaultTruck);
+        }
 
         // Generate JWT token and return
         String token = jwtUtil.generateToken(user);
