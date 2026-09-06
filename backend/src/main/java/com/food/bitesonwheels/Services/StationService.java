@@ -9,6 +9,7 @@ import com.food.bitesonwheels.models.Station;
 import com.food.bitesonwheels.models.TruckSchedule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -31,6 +32,7 @@ public class StationService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public TrackingDTO getOrderTracking(Long orderId, Long userId) {
         Orders order = orderRepository.findByOrderIdAndUserUserId(orderId, userId);
         if (order == null) throw new RuntimeException("Order not found or not yours.");

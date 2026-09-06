@@ -64,12 +64,14 @@ public class OrderService {
         return saved;
     }
 
+    @Transactional(readOnly = true)
     public OrderSummaryDTO getOrderById(Long orderId, Long userId) {
         Orders order = orderRepository.findByOrderIdAndUserUserId(orderId, userId);
         if (order == null) throw new RuntimeException("Order not found or not yours.");
         return toDTO(order);
     }
 
+    @Transactional(readOnly = true)
     public List<OrderSummaryDTO> getOrders(Long userId, OrderStatus status) {
         List<Orders> orders = (status != null)
                 ? orderRepository.findByUserUserIdAndStatusOrderByCreatedAtDesc(userId, status)

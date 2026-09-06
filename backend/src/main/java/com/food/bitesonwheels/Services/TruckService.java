@@ -76,7 +76,8 @@ public class TruckService {
         Truck truck = getCurrentTruck();
         LocalDate today = LocalDate.now();
         List<TruckSchedule> existing  = scheduleRepository.findByTruckTruckIdAndServiceDate(truck.getTruckId(), today);
-        
+        scheduleRepository.deleteAll(existing); // clear old setup before re-planning
+
         List<TruckSchedule> newSchedules=stations.stream().map(s->{
             Long stationId = Long.valueOf(s.get("stationId").toString());
             Station station = stationRepository.findById(stationId).orElseThrow(()-> new RuntimeException("Station not found"+stationId));
