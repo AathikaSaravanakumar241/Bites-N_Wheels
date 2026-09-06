@@ -35,6 +35,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/trucks/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/foods/search").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/stations/**").permitAll()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/cart/**").authenticated()
+                .requestMatchers("/api/v1/orders/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
