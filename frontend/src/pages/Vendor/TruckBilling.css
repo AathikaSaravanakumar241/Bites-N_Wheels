@@ -1,0 +1,393 @@
+* {
+    box-sizing: border-box;
+}
+
+.truck-billing-container {
+    min-height: 100vh;
+    padding: 35px;
+    background: linear-gradient(135deg, #fff8ef, #fff1dc);
+    color: #3d2b1f;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.page-header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+}
+
+.page-header p {
+    margin: 0;
+    color: #765f50;
+    font-size: 15px;
+}
+
+.refresh-button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #d97706;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.refresh-button:hover {
+    background: #b45309;
+}
+
+.refresh-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message,
+.success-message {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.success-message {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.billing-section,
+.bill-items-section {
+    background: white;
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 18px rgba(80, 50, 20, 0.08);
+}
+
+.section-title {
+    margin-bottom: 25px;
+}
+
+.section-title h2,
+.section-header h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+}
+
+.section-title p,
+.section-header p {
+    margin: 0;
+    color: #806b5b;
+    font-size: 14px;
+}
+
+.billing-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label,
+.payment-section label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.payment-section select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dccabb;
+    border-radius: 8px;
+    background: #fffdf9;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.payment-section select:focus {
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
+.food-selection {
+    display: grid;
+    grid-template-columns: 1fr 150px auto;
+    align-items: end;
+    gap: 15px;
+}
+
+.quantity-group {
+    max-width: 150px;
+}
+
+.add-item-button {
+    height: 44px;
+    padding: 0 22px;
+    border: none;
+    border-radius: 8px;
+    background: #ea580c;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.add-item-button:hover {
+    background: #c2410c;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.item-count {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: #fff1dc;
+    color: #9a3412;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.no-items {
+    text-align: center;
+    padding: 45px 20px;
+    background: #fffaf4;
+    border: 1px dashed #decdbd;
+    border-radius: 10px;
+}
+
+.no-items h3 {
+    margin: 0 0 8px;
+}
+
+.no-items p {
+    margin: 0;
+    color: #806b5b;
+}
+
+.billing-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.billing-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.billing-table th {
+    padding: 15px;
+    text-align: left;
+    background: #fff4e5;
+    color: #5b3a25;
+    font-size: 14px;
+    font-weight: 700;
+    border-bottom: 2px solid #ead7c5;
+}
+
+.billing-table td {
+    padding: 16px 15px;
+    border-bottom: 1px solid #eee2d6;
+    font-size: 14px;
+}
+
+.billing-table tbody tr:hover {
+    background: #fffaf5;
+}
+
+.food-name {
+    font-weight: 600;
+}
+
+.subtotal {
+    font-weight: 700;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-control button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #d8c2af;
+    border-radius: 6px;
+    background: #fff8ef;
+    color: #6b3f20;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.quantity-control button:hover {
+    background: #fde4c2;
+}
+
+.quantity-control span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.remove-button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.remove-button:hover {
+    background: #fecaca;
+}
+
+.bill-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    padding: 25px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(80, 50, 20, 0.08);
+}
+
+.payment-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.payment-section select {
+    width: 160px;
+}
+
+.total-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.total-section span {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.total-section strong {
+    font-size: 26px;
+}
+
+.billing-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.generate-button,
+.clear-button {
+    padding: 13px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.generate-button {
+    background: #16a34a;
+    color: white;
+}
+
+.generate-button:hover {
+    background: #15803d;
+}
+
+.clear-button {
+    background: #e7ddd3;
+    color: #4b3628;
+}
+
+.clear-button:hover {
+    background: #d8c9bc;
+}
+
+@media (max-width: 800px) {
+
+    .truck-billing-container {
+        padding: 20px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .food-selection {
+        grid-template-columns: 1fr;
+    }
+
+    .quantity-group {
+        max-width: none;
+    }
+
+    .add-item-button {
+        width: 100%;
+    }
+
+    .bill-summary {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .payment-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .payment-section select {
+        width: 100%;
+    }
+
+    .total-section {
+        justify-content: space-between;
+    }
+
+    .billing-actions {
+        flex-direction: column;
+    }
+
+    .generate-button,
+    .clear-button {
+        width: 100%;
+    }
+}
