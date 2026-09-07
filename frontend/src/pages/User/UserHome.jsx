@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
+import { useCart } from './CartContext.jsx'
 import logo from '../../assets/logo.jpeg'
 import './UserHome.css'
 
@@ -46,7 +47,7 @@ export default function UserHome() {
   const [query, setQuery] = useState('')
   const [truckScope, setTruckScope] = useState('nearby')  
   const [orderTime, setOrderTime] = useState('now')       
-  const [cartCount] = useState(0)                         
+  const { count: cartCount } = useCart()
 
   
   const [activeCategory, setActiveCategory] = useState(null)
@@ -163,7 +164,11 @@ export default function UserHome() {
 
             <Link to="/login" className="uh-login">Login</Link>
 
-            <button type="button" className="uh-cart">
+            <button
+              type="button"
+              className="uh-cart"
+              onClick={() => navigate('/user/cart')}
+            >
               <span aria-hidden="true">🛒</span>
               <span className="uh-cart-text">My items</span>
               {cartCount > 0 && <span className="uh-badge">{cartCount}</span>}

@@ -1,339 +1,222 @@
-import { useMemo, useState } from 'react'
-import logo from '../../assets/logo.jpeg'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import VendorLayout from './VendorLayout.jsx'
+import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorHome.css'
 
-/* ---------------------------------------------------------------
-   MOCK DATA - replace each with a fetch to /api/... later.
-   --------------------------------------------------------------- */
+/* Relative path so Vite's dev proxy forwards to Spring on :8080 and
+   the same build works in production. See vite.config.js. */
+const ORDERS_URL = '/api/orders'
 
-const INITIAL_ORDERS = [
-  { id: 'BW-1041', customer: 'Anitha R', items: ['2x Chicken Roll', '1x Cold Coffee'], total: 320, placedAt: '7:42 PM', type: 'preorder', pickupAt: '8:15 PM', status: 'new' },
-  { id: 'BW-1040', customer: 'Vikram S', items: ['1x Paneer Tikka Roll'],              total: 180, placedAt: '7:38 PM', type: 'now',      pickupAt: null,     status: 'new' },
-  { id: 'BW-1039', customer: 'Meera K',  items: ['3x Veg Momos', '2x Masala Chai'],    total: 260, placedAt: '7:31 PM', type: 'now',      pickupAt: null,     status: 'preparing' },
-  { id: 'BW-1038', customer: 'Rahul D',  items: ['1x Chicken Biryani'],                total: 240, placedAt: '7:24 PM', type: 'preorder', pickupAt: '7:55 PM', status: 'preparing' },
-  { id: 'BW-1037', customer: 'Priya N',  items: ['2x Waffle Stack'],                   total: 300, placedAt: '7:15 PM', type: 'now',      pickupAt: null,     status: 'ready' },
-]
+/** Backend statuses, in the order an order moves through them. */
+const OPEN_STATUSES = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
 
-const INITIAL_MENU = [
-  { id: 1, name: 'Chicken Roll',      price: 140, available: true },
-  { id: 2, name: 'Paneer Tikka Roll', price: 180, available: true },
-  { id: 3, name: 'Veg Momos',         price: 90,  available: true },
-  { id: 4, name: 'Chicken Biryani',   price: 240, available: false },
-  { id: 5, name: 'Cold Coffee',       price: 80,  available: true },
-  { id: 6, name: 'Waffle Stack',      price: 150, available: true },
-]
+/** Orders API shape is inconsistent about user - handle both. */
+function customerName(user) {
+  if (!user) return 'Guest'
+  if (typeof user === 'string') return user
+  return user.name || user.username || user.email || 'Guest'
+}
 
-const CUISINES = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
-const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
+function itemSummary(items) {
+  if (!Array.isArray(items) || items.length === 0) return 'No items listed'
+  return items
+    .map((i) => {
+      const name = i?.name || i?.itemName || i?.menuItem?.name || 'Item'
+      const qty = i?.quantity ?? i?.qty ?? 1
+      return `${qty}x ${name}`
+    })
+    .join(', ')
+}
 
-const TABS = [
-  { id: 'new',       label: 'New' },
-  { id: 'preparing', label: 'Preparing' },
-  { id: 'ready',     label: 'Ready' },
-]
+function isToday(value) {
+  if (!value) return false
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return false
+  const now = new Date()
+  return (
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  )
+}
 
 export default function VendorHome() {
-  const [isOpen, setIsOpen] = useState(true)
-  const [parkedAt, setParkedAt] = useState('IIT Madras Gate, Guindy')
-  const [orders, setOrders] = useState(INITIAL_ORDERS)
-  const [menu, setMenu] = useState(INITIAL_MENU)
-  const [tab, setTab] = useState('new')
+  const { profile, isOpen } = useVendorStatus()
 
-  // These four fields are what the customer-side filters match on.
-  const [tagline, setTagline] = useState('Street-style rolls and momos, made to order')
-  const [cuisine, setCuisine] = useState('North Indian')
-  const [spice, setSpice] = useState('Medium')
-  const [vegOnly, setVegOnly] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  function advance(orderId, nextStatus) {
-    setOrders((current) =>
-      nextStatus === 'done'
-        ? current.filter((o) => o.id !== orderId)
-        : current.map((o) => (o.id === orderId ? { ...o, status: nextStatus } : o)),
-    )
-  }
+  const getOrders = useCallback(() => {
+    setLoading(true)
+    setError('')
 
-  function rejectOrder(orderId) {
-    setOrders((current) => current.filter((o) => o.id !== orderId))
-  }
+    fetch(ORDERS_URL)
+      .then((response) => {
+        if (!response.ok) {
+          const err = new Error(`Request failed with ${response.status}`)
+          err.status = response.status
+          throw err
+        }
+        return response.json()
+      })
+      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error(err)
+        // 401/403 means the backend answered but Spring Security refused,
+        // which is a very different fix from the server being down.
+        if (err.status === 401 || err.status === 403) {
+          setError(
+            `Backend refused the request (${err.status}). /api/orders is behind Spring Security — ` +
+              'it needs a logged-in vendor token, or the endpoint must be permitted.',
+          )
+        } else {
+          setError('Unable to load orders. Check that the backend is running on port 8080.')
+        }
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
-  function toggleItem(itemId) {
-    setMenu((current) =>
-      current.map((m) => (m.id === itemId ? { ...m, available: !m.available } : m)),
-    )
-  }
+  useEffect(() => {
+    getOrders()
+  }, [getOrders])
 
-  const counts = useMemo(
-    () => ({
-      new: orders.filter((o) => o.status === 'new').length,
-      preparing: orders.filter((o) => o.status === 'preparing').length,
-      ready: orders.filter((o) => o.status === 'ready').length,
-    }),
+  const stats = useMemo(() => {
+    const by = (status) => orders.filter((o) => o.status === status).length
+    const revenue = orders
+      .filter((o) => o.status === 'COMPLETED' && isToday(o.createdAt))
+      .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
+
+    return {
+      pending: by('PENDING'),
+      preparing: by('PREPARING'),
+      ready: by('READY'),
+      revenue,
+    }
+  }, [orders])
+
+  // Newest first, only orders still in play.
+  const liveOrders = useMemo(
+    () =>
+      orders
+        .filter((o) => OPEN_STATUSES.includes(o.status))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 5),
     [orders],
   )
-
-  const revenue = useMemo(
-    () => orders.reduce((sum, o) => sum + o.total, 0),
-    [orders],
-  )
-
-  const visibleOrders = orders.filter((o) => o.status === tab)
-  const soldOut = menu.filter((m) => !m.available).length
 
   return (
-    <div className="vh">
-      {/* ---------------- HEADER ---------------- */}
-      <header className="vh-header">
-        <div className="vh-header-inner">
-          <div className="vh-brand">
-            <img src={logo} alt="" className="vh-logo" />
-            <div>
-              <div className="vh-brand-name">
-                Bites N Wheels <span className="vh-role">Vendor</span>
-              </div>
-              <div className="vh-truck-name">Roll Rickshaw</div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="vh-parked"
-            onClick={() => {
-              const next = window.prompt('Where is your truck parked today?', parkedAt)
-              if (next) setParkedAt(next)
-            }}
-          >
-            <span aria-hidden="true">📍</span>
-            <span className="vh-parked-text">{parkedAt}</span>
-            <span className="vh-caret" aria-hidden="true">▾</span>
-          </button>
-
-          <div className="vh-actions">
-            <button
-              type="button"
-              className={isOpen ? 'vh-status is-open' : 'vh-status'}
-              onClick={() => setIsOpen((v) => !v)}
-              aria-pressed={isOpen}
-            >
-              <span className="vh-dot" aria-hidden="true" />
-              {isOpen ? 'Open for orders' : 'Closed'}
-            </button>
-
-            <button type="button" className="vh-icon-btn" aria-label="Notifications">
-              <span aria-hidden="true">🔔</span>
-              {counts.new > 0 && <span className="vh-badge">{counts.new}</span>}
-            </button>
-
-            <button type="button" className="vh-profile" aria-label="Your profile">
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <circle cx="12" cy="8" r="4" fill="currentColor" />
-                <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"
-                      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {!isOpen && (
-        <div className="vh-banner">
-          You are marked <strong>closed</strong> - customers cannot see your truck
-          or place orders right now.
-        </div>
-      )}
+    <VendorLayout
+      title="Dashboard"
+      subtitle={`${profile.truckName} · parked at ${profile.parkedAt}`}
+      actions={
+        <button type="button" className="vh-refresh" onClick={getOrders} disabled={loading}>
+          {loading ? 'Refreshing…' : 'Refresh'}
+        </button>
+      }
+    >
+      {error && <div className="vh-error">{error}</div>}
 
       {/* ---------------- STATS ---------------- */}
       <section className="vh-stats">
         <div className="vh-stat">
-          <span className="vh-stat-label">Active orders</span>
-          <span className="vh-stat-value">{orders.length}</span>
-        </div>
-        <div className="vh-stat">
-          <span className="vh-stat-label">Today's revenue</span>
-          <span className="vh-stat-value">₹{revenue}</span>
-        </div>
-        <div className="vh-stat">
           <span className="vh-stat-label">Awaiting accept</span>
-          <span className="vh-stat-value">{counts.new}</span>
+          <span className={stats.pending > 0 ? 'vh-stat-value is-alert' : 'vh-stat-value'}>
+            {stats.pending}
+          </span>
         </div>
         <div className="vh-stat">
-          <span className="vh-stat-label">Items sold out</span>
-          <span className="vh-stat-value">{soldOut}</span>
+          <span className="vh-stat-label">Preparing</span>
+          <span className="vh-stat-value">{stats.preparing}</span>
+        </div>
+        <div className="vh-stat">
+          <span className="vh-stat-label">Ready for pickup</span>
+          <span className="vh-stat-value">{stats.ready}</span>
+        </div>
+        <div className="vh-stat">
+          <span className="vh-stat-label">Completed today</span>
+          <span className="vh-stat-value">₹{stats.revenue}</span>
         </div>
       </section>
 
-      <div className="vh-main">
-        {/* ---------------- ORDER QUEUE ---------------- */}
+      <div className="vh-grid">
+        {/* ---------------- LIVE QUEUE ---------------- */}
         <section className="vh-panel">
-          <h2 className="vh-panel-title">Order queue</h2>
-
-          <div className="vh-tabs" role="tablist">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === t.id}
-                className={tab === t.id ? 'vh-tab is-active' : 'vh-tab'}
-                onClick={() => setTab(t.id)}
-              >
-                {t.label}
-                <span className="vh-tab-count">{counts[t.id]}</span>
-              </button>
-            ))}
+          <div className="vh-panel-head">
+            <h2 className="vh-panel-title">Live orders</h2>
+            <Link to="/vendor/orders" className="vh-link">Manage all →</Link>
           </div>
 
-          {visibleOrders.length === 0 ? (
-            <p className="vh-empty">Nothing in this queue right now.</p>
+          {loading ? (
+            <p className="vh-muted">Loading orders…</p>
+          ) : liveOrders.length === 0 ? (
+            <p className="vh-empty">
+              {error
+                ? 'Orders could not be loaded.'
+                : 'No open orders right now.'}
+            </p>
           ) : (
-            <div className="vh-orders">
-              {visibleOrders.map((order) => (
-                <article key={order.id} className="vh-order">
-                  <div className="vh-order-top">
-                    <div>
-                      <span className="vh-order-id">{order.id}</span>
-                      <span className="vh-order-customer">{order.customer}</span>
-                    </div>
-                    {order.type === 'preorder' ? (
-                      <span className="vh-chip vh-chip-pre">Pre-order · {order.pickupAt}</span>
-                    ) : (
-                      <span className="vh-chip">Now · {order.placedAt}</span>
+            <ul className="vh-orders">
+              {liveOrders.map((order) => (
+                <li key={order.orderId} className="vh-order">
+                  <div className="vh-order-main">
+                    <span className="vh-order-id">#{order.orderId}</span>
+                    <span className="vh-order-customer">{customerName(order.user)}</span>
+                    <span className="vh-order-items">{itemSummary(order.items)}</span>
+                  </div>
+                  <div className="vh-order-side">
+                    <span className={`vh-pill is-${String(order.status).toLowerCase()}`}>
+                      {order.status}
+                    </span>
+                    <span className="vh-order-total">₹{order.totalAmount ?? 0}</span>
+                    {order.scheduleType === 'SCHEDULED' && order.scheduledTime && (
+                      <span className="vh-pre">Pre-order</span>
                     )}
                   </div>
-
-                  <ul className="vh-order-items">
-                    {order.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-
-                  <div className="vh-order-bottom">
-                    <span className="vh-order-total">₹{order.total}</span>
-                    <div className="vh-order-actions">
-                      {order.status === 'new' && (
-                        <>
-                          <button
-                            type="button"
-                            className="vh-btn-ghost"
-                            onClick={() => rejectOrder(order.id)}
-                          >
-                            Reject
-                          </button>
-                          <button
-                            type="button"
-                            className="vh-btn"
-                            onClick={() => advance(order.id, 'preparing')}
-                          >
-                            Accept
-                          </button>
-                        </>
-                      )}
-                      {order.status === 'preparing' && (
-                        <button
-                          type="button"
-                          className="vh-btn"
-                          onClick={() => advance(order.id, 'ready')}
-                        >
-                          Mark ready
-                        </button>
-                      )}
-                      {order.status === 'ready' && (
-                        <button
-                          type="button"
-                          className="vh-btn"
-                          onClick={() => advance(order.id, 'done')}
-                        >
-                          Handed over
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ---------------- SIDEBAR ---------------- */}
-        <aside className="vh-side">
-          <section className="vh-panel">
-            <h2 className="vh-panel-title">Truck profile</h2>
-            <p className="vh-hint">
-              These fields decide which customer filters your truck shows up in.
-            </p>
-
-            <label className="vh-field">
-              <span>Tagline</span>
-              <input
-                type="text"
-                value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
-                maxLength={60}
-              />
-              <small>{tagline.length}/60</small>
-            </label>
-
-            <label className="vh-field">
-              <span>Cuisine</span>
-              <select value={cuisine} onChange={(e) => setCuisine(e.target.value)}>
-                {CUISINES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="vh-field">
-              <span>Spice level</span>
-              <select value={spice} onChange={(e) => setSpice(e.target.value)}>
-                {SPICE_LEVELS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="vh-check">
-              <input
-                type="checkbox"
-                checked={vegOnly}
-                onChange={(e) => setVegOnly(e.target.checked)}
-              />
-              Pure veg truck
-            </label>
-
-            <button type="button" className="vh-btn vh-btn-block">
-              Save profile
-            </button>
-          </section>
-
-          <section className="vh-panel">
-            <h2 className="vh-panel-title">
-              Menu
-              <span className="vh-count">{menu.length}</span>
-            </h2>
-            <p className="vh-hint">Turn an item off the moment you run out.</p>
-
-            <ul className="vh-menu">
-              {menu.map((item) => (
-                <li key={item.id} className={item.available ? '' : 'is-off'}>
-                  <div>
-                    <span className="vh-menu-name">{item.name}</span>
-                    <span className="vh-menu-price">₹{item.price}</span>
-                  </div>
-                  <label className="vh-switch">
-                    <input
-                      type="checkbox"
-                      checked={item.available}
-                      onChange={() => toggleItem(item.id)}
-                      aria-label={`${item.name} available`}
-                    />
-                    <span aria-hidden="true" />
-                  </label>
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+
+        {/* ---------------- SIDE ---------------- */}
+        <aside className="vh-side">
+          <section className="vh-panel">
+            <h2 className="vh-panel-title">Today</h2>
+            <dl className="vh-facts">
+              <div>
+                <dt>Status</dt>
+                <dd className={isOpen ? 'vh-open' : 'vh-closed'}>
+                  {isOpen ? 'Taking orders' : 'Closed'}
+                </dd>
+              </div>
+              <div>
+                <dt>Hours</dt>
+                <dd>{profile.opensAt} – {profile.closesAt}</dd>
+              </div>
+              <div>
+                <dt>Cuisine</dt>
+                <dd>{profile.cuisine}</dd>
+              </div>
+              <div>
+                <dt>Spice</dt>
+                <dd>{profile.spice}</dd>
+              </div>
+            </dl>
+            <Link to="/vendor/profile" className="vh-link">Edit profile →</Link>
+          </section>
+
+          <section className="vh-panel">
+            <h2 className="vh-panel-title">Quick actions</h2>
+            <div className="vh-quick">
+              <Link to="/vendor/orders" className="vh-quick-btn">Order queue</Link>
+              <Link to="/vendor/menu" className="vh-quick-btn">Edit menu</Link>
+              <Link to="/vendor/billing" className="vh-quick-btn">Walk-in bill</Link>
+            </div>
           </section>
         </aside>
       </div>
-    </div>
+    </VendorLayout>
   )
 }

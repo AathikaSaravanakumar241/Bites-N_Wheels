@@ -1,0 +1,560 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.truck-orders-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 35px;
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Page Header */
+
+.page-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    margin: 0 0 8px;
+    color: #7c2d12;
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.page-header p {
+    margin: 0;
+    color: #78350f;
+    font-size: 16px;
+}
+
+/* Refresh Button */
+
+.refresh-button {
+    border: none;
+    outline: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: #ea580c;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.refresh-button:hover {
+    background: #c2410c;
+    transform: translateY(-2px);
+}
+
+.refresh-button:active {
+    transform: translateY(0);
+}
+
+.refresh-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Error */
+
+.error-message {
+    width: 100%;
+    margin-bottom: 25px;
+    padding: 15px 18px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 14px;
+}
+
+/* Orders Section */
+
+.orders-section {
+    width: 100%;
+    background: white;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 8px 25px rgba(124, 45, 18, 0.08);
+}
+
+/* Orders Header */
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.orders-header h2 {
+    margin: 0 0 7px;
+    color: #431407;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.section-description {
+    margin: 0;
+    color: #78716c;
+    font-size: 14px;
+}
+
+.order-count {
+    padding: 10px 16px;
+    border-radius: 20px;
+    background: #ffedd5;
+    color: #9a3412;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Table Container */
+
+.orders-table-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+}
+
+/* Scrollbar */
+
+.orders-table-container::-webkit-scrollbar {
+    height: 9px;
+}
+
+.orders-table-container::-webkit-scrollbar-track {
+    background: #fff7ed;
+    border-radius: 10px;
+}
+
+.orders-table-container::-webkit-scrollbar-thumb {
+    background: #fb923c;
+    border-radius: 10px;
+}
+
+.orders-table-container::-webkit-scrollbar-thumb:hover {
+    background: #ea580c;
+}
+
+/* Table */
+
+.orders-table {
+    width: 100%;
+    min-width: 1450px;
+    border-collapse: collapse;
+    background: white;
+}
+
+/* Table Header */
+
+.orders-table th {
+    padding: 15px;
+    text-align: left;
+    background: #fff7ed;
+    color: #7c2d12;
+    border-bottom: 2px solid #fed7aa;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Table Body */
+
+.orders-table td {
+    padding: 16px 15px;
+    border-bottom: 1px solid #f5f5f4;
+    vertical-align: middle;
+    color: #44403c;
+    font-size: 14px;
+}
+
+.orders-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.orders-table tbody tr:hover {
+    background: #fffaf5;
+}
+
+.orders-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Order ID */
+
+.order-id {
+    display: inline-block;
+    color: #ea580c;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Customer */
+
+.customer-name {
+    display: block;
+    min-width: 100px;
+    color: #292524;
+    font-weight: 600;
+}
+
+/* Food Items */
+
+.food-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 170px;
+}
+
+.food-item {
+    color: #57534e;
+    line-height: 1.4;
+}
+
+/* Order Type */
+
+.order-type {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #f5f5f4;
+    color: #57534e;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Schedule Type */
+
+.schedule-type {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Rejected Reason */
+
+.reject-reason {
+    display: block;
+    min-width: 140px;
+    max-width: 200px;
+    color: #b91c1c;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.not-available {
+    color: #a8a29e;
+    font-size: 14px;
+}
+
+/* Scheduled Time */
+
+.scheduled-time {
+    display: block;
+    min-width: 150px;
+    color: #57534e;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Total Amount */
+
+.order-price {
+    display: block;
+    color: #15803d;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Created At */
+
+.created-at {
+    display: block;
+    min-width: 150px;
+    color: #57534e;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Status */
+
+.status {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Pending */
+
+.status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Accepted */
+
+.status.accepted {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Preparing */
+
+.status.preparing {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+/* Ready */
+
+.status.ready {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* Completed */
+
+.status.completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Rejected */
+
+.status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Actions */
+
+.order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    min-width: 150px;
+}
+
+/* Action Buttons */
+
+.action-button {
+    border: none;
+    outline: none;
+    padding: 8px 11px;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+/* Accept */
+
+.accept-button {
+    background: #16a34a;
+}
+
+.accept-button:hover {
+    background: #15803d;
+}
+
+/* Reject */
+
+.reject-button {
+    background: #dc2626;
+}
+
+.reject-button:hover {
+    background: #b91c1c;
+}
+
+/* Preparing */
+
+.prepare-button {
+    background: #ea580c;
+}
+
+.prepare-button:hover {
+    background: #c2410c;
+}
+
+/* Ready */
+
+.ready-button {
+    background: #2563eb;
+}
+
+.ready-button:hover {
+    background: #1d4ed8;
+}
+
+/* Complete */
+
+.complete-button {
+    background: #059669;
+}
+
+.complete-button:hover {
+    background: #047857;
+}
+
+/* Completed Text */
+
+.completed-text {
+    color: #047857;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Rejected Text */
+
+.rejected-text {
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* No Action */
+
+.no-action {
+    color: #78716c;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* Loading */
+
+.loading {
+    padding: 70px 20px;
+    text-align: center;
+    color: #78716c;
+}
+
+.loading p {
+    margin: 0;
+    font-size: 16px;
+}
+
+/* No Orders */
+
+.no-orders {
+    padding: 70px 20px;
+    text-align: center;
+}
+
+.no-orders h3 {
+    margin: 0 0 8px;
+    color: #57534e;
+    font-size: 22px;
+}
+
+.no-orders p {
+    margin: 0;
+    color: #78716c;
+    font-size: 14px;
+}
+
+/* Tablet */
+
+@media (max-width: 1000px) {
+    .truck-orders-container {
+        padding: 25px 18px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .refresh-button {
+        width: auto;
+    }
+
+    .orders-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .truck-orders-container {
+        padding: 20px 12px;
+    }
+
+    .page-header h1 {
+        font-size: 28px;
+    }
+
+    .page-header p {
+        font-size: 14px;
+    }
+
+    .refresh-button {
+        width: 100%;
+    }
+
+    .orders-section {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .orders-header h2 {
+        font-size: 21px;
+    }
+
+    .order-count {
+        font-size: 13px;
+    }
+
+    .orders-table {
+        min-width: 1450px;
+    }
+}
