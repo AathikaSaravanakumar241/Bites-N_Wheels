@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CATEGORIES, TRUCKS } from '../../data/trucks.jsx'
+import { useCart } from './CartContext.jsx'
 import './Category.css'
 
 export default function CategoryPage() {
   const { categoryId } = useParams()
+  const navigate = useNavigate()
   const [selectedTruckId, setSelectedTruckId] = useState(null)
-  const [cart, setCart] = useState({}) // { [itemId]: quantity }
+
+  const { addItem, startNewCart, removeItem, qtyOf, count } = useCart()
 
   const category = CATEGORIES.find((c) => c.id === categoryId)
 
@@ -37,20 +40,21 @@ export default function CategoryPage() {
     ? selectedTruck.items.filter((i) => i.category !== categoryId)
     : []
 
-  function addItem(itemId) {
-    setCart((c) => ({ ...c, [itemId]: (c[itemId] || 0) + 1 }))
+  /**
+   * One order can only come from one truck. If the cart already holds
+   * another truck's food, ask before throwing it away.
+   */
+  function handleAdd(truckId, itemId) {
+    const result = addItem(truckId, itemId)
+    if (result.conflict) {
+      const truckName = result.currentTruck?.name ?? 'another truck'
+      const ok = window.confirm(
+        `Your cart already has food from ${truckName}.\n\n` +
+          `One order can only come from one truck. Start a new cart?`,
+      )
+      if (ok) startNewCart(truckId, itemId)
+    }
   }
-
-  function removeItem(itemId) {
-    setCart((c) => {
-      const next = { ...c }
-      if (next[itemId] > 1) next[itemId] -= 1
-      else delete next[itemId]
-      return next
-    })
-  }
-
-  const cartCount = Object.values(cart).reduce((a, b) => a + b, 0)
 
   if (!category) {
     return (
@@ -60,6 +64,21 @@ export default function CategoryPage() {
         </div>
         <p className="cp-empty">That category doesn't exist.</p>
       </div>
+    )
+  }
+
+  function renderControls(item, truckId) {
+    const qty = qtyOf(item.id)
+    return qty ? (
+      <div className="cp-stepper">
+        <button type="button" onClick={() => removeItem(item.id)} aria-label="Remove one">−</button>
+        <span>{qty}</span>
+        <button type="button" onClick={() => handleAdd(truckId, item.id)} aria-label="Add one">+</button>
+      </div>
+    ) : (
+      <button type="button" className="cp-add" onClick={() => handleAdd(truckId, item.id)}>
+        Add
+      </button>
     )
   }
 
@@ -76,9 +95,9 @@ export default function CategoryPage() {
           <span className="cp-sub">
             {trucks.length} truck{trucks.length === 1 ? '' : 's'} serving now
           </span>
-          {cartCount > 0 && (
-            <button type="button" className="cp-cart">
-              🛒 {cartCount} item{cartCount === 1 ? '' : 's'}
+          {count > 0 && (
+            <button type="button" className="cp-cart" onClick={() => navigate('/user/cart')}>
+              🛒 {count} item{count === 1 ? '' : 's'} · View cart
             </button>
           )}
         </div>
@@ -160,17 +179,7 @@ export default function CategoryPage() {
                   )}
                   <div className="cp-dish-foot">
                     <span className="cp-price">₹{dish.price}</span>
-                    {cart[dish.id] ? (
-                      <div className="cp-stepper">
-                        <button type="button" onClick={() => removeItem(dish.id)} aria-label="Remove one">−</button>
-                        <span>{cart[dish.id]}</span>
-                        <button type="button" onClick={() => addItem(dish.id)} aria-label="Add one">+</button>
-                      </div>
-                    ) : (
-                      <button type="button" className="cp-add" onClick={() => addItem(dish.id)}>
-                        Add
-                      </button>
-                    )}
+                    {renderControls(dish, dish.truckId)}
                   </div>
                 </article>
               ))}
@@ -197,17 +206,7 @@ export default function CategoryPage() {
                     </p>
                     <div className="cp-dish-foot">
                       <span className="cp-price">₹{item.price}</span>
-                      {cart[item.id] ? (
-                        <div className="cp-stepper">
-                          <button type="button" onClick={() => removeItem(item.id)} aria-label="Remove one">−</button>
-                          <span>{cart[item.id]}</span>
-                          <button type="button" onClick={() => addItem(item.id)} aria-label="Add one">+</button>
-                        </div>
-                      ) : (
-                        <button type="button" className="cp-add" onClick={() => addItem(item.id)}>
-                          Add
-                        </button>
-                      )}
+                      {renderControls(item, selectedTruck.id)}
                     </div>
                   </article>
                 ))}
