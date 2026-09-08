@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link,useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
+import { get } from '../../api.js'
 import logo from '../../assets/logo.jpeg'
 import './UserHome.css'
-
-
-
-
 
 const PROMOS = [
   { id: 1, tag: 'New user',  title: '50% off your first order', text: 'Use code FIRST50 at any truck near you.' },
@@ -27,83 +24,81 @@ const CATEGORIES = [
   { id: 'icecream', label: 'Ice Cream', icon: '🍦' },
 ]
 
-const CUISINES = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
+const CUISINES     = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
 const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
 
-const TRUCKS = [
-  { id: 1, name: 'Wheels & Wok',      tagline: 'Street-style Chinese, wok-tossed to order', category: 'noodles', cuisine: 'Chinese',       spice: 'Spicy',  veg: false, rating: 4.4, distanceKm: 0.8, etaMin: 15 },
-  { id: 2, name: 'The Waffle Wagon',  tagline: 'Belgian waffles and cold brew',             category: 'waffles', cuisine: 'Italian',       spice: 'Mild',   veg: true,  rating: 4.7, distanceKm: 1.2, etaMin: 20 },
-  { id: 3, name: 'Dosa Diaries',      tagline: 'Crispy dosas, ghee roast, filter coffee',   category: 'coffee',  cuisine: 'South Indian',  spice: 'Medium', veg: true,  rating: 4.6, distanceKm: 0.5, etaMin: 12 },
-  { id: 4, name: 'Smoke & Slice',     tagline: 'Wood-fired pizza from a converted van',     category: 'pizza',   cuisine: 'Italian',       spice: 'Mild',   veg: false, rating: 4.5, distanceKm: 2.1, etaMin: 25 },
-  { id: 5, name: 'Biryani Boulevard', tagline: 'Dum biryani, slow-cooked every evening',    category: 'biryani', cuisine: 'North Indian',  spice: 'Spicy',  veg: false, rating: 4.8, distanceKm: 1.6, etaMin: 22 },
-  { id: 6, name: 'Taco Tracks',       tagline: 'Soft-shell tacos and loaded nachos',        category: 'tacos',   cuisine: 'Mexican',       spice: 'Medium', veg: true,  rating: 4.3, distanceKm: 3.4, etaMin: 30 },
-]
-
 export default function UserHome() {
-
   const navigate = useNavigate()
-  
-  const [location, setLocation] = useState('Chennai, Guindy')
-  const [query, setQuery] = useState('')
-  const [truckScope, setTruckScope] = useState('nearby')  
-  const [orderTime, setOrderTime] = useState('now')       
-  const { count: cartCount } = useCart()
 
-  
-  const [activeCategory, setActiveCategory] = useState(null)
+  const [trucks, setTrucks]           = useState([])
+  const [truckLoading, setTruckLoading] = useState(true)
+
+  const [location, setLocation]       = useState('Chennai, Guindy')
+  const [query, setQuery]             = useState('')
+  const [truckScope, setTruckScope]   = useState('all')
+  const [orderTime, setOrderTime]     = useState('now')
+  const { count: cartCount }          = useCart()
+
   const [activeCuisines, setActiveCuisines] = useState([])
-  const [activeSpice, setActiveSpice] = useState(null)
-  const [vegOnly, setVegOnly] = useState(false)
-
+  const [activeSpice, setActiveSpice]       = useState(null)
+  const [vegOnly, setVegOnly]               = useState(false)
 
   const [promoIndex, setPromoIndex] = useState(0)
+
+  useEffect(() => {
+    get('/api/v1/trucks', false)
+      .then((data) => {
+        setTrucks(Array.isArray(data) ? data.map((t) => ({
+          id:         t.truckId,
+          name:       t.name,
+          tagline:    t.tagline ?? '',
+          status:     t.status,
+          rating:     4.5,
+          distanceKm: 1.0,
+          etaMin:     20,
+          veg:        false,
+        })) : [])
+      })
+      .catch(() => setTrucks([]))
+      .finally(() => setTruckLoading(false))
+  }, [])
+
   useEffect(() => {
     const timer = setInterval(() => setPromoIndex((i) => (i + 1) % PROMOS.length), 4000)
-    return () => clearInterval(timer)   
+    return () => clearInterval(timer)
   }, [])
 
   function toggleCuisine(cuisine) {
     setActiveCuisines((current) =>
-      current.includes(cuisine)
-        ? current.filter((c) => c !== cuisine)
-        : [...current, cuisine],
+      current.includes(cuisine) ? current.filter((c) => c !== cuisine) : [...current, cuisine]
     )
   }
 
   function clearFilters() {
-    setActiveCategory(null)
     setActiveCuisines([])
     setActiveSpice(null)
     setVegOnly(false)
   }
 
   const visibleTrucks = useMemo(() => {
-    return TRUCKS.filter((truck) => {
-      if (truckScope === 'nearby' && truck.distanceKm > 2) return false
-      if (activeCategory && truck.category !== activeCategory) return false
+    return trucks.filter((truck) => {
+      if (truck.status === 'INACTIVE') return false
       if (activeCuisines.length && !activeCuisines.includes(truck.cuisine)) return false
       if (activeSpice && truck.spice !== activeSpice) return false
       if (vegOnly && !truck.veg) return false
-
-     
-      const window = orderTime === 'now' ? 30 : Number(orderTime)
-      if (truck.etaMin > window) return false
-
       if (query.trim()) {
-        const haystack = `${truck.name} ${truck.tagline} ${truck.cuisine}`.toLowerCase()
+        const haystack = `${truck.name} ${truck.tagline}`.toLowerCase()
         if (!haystack.includes(query.trim().toLowerCase())) return false
       }
       return true
     })
-  }, [truckScope, activeCategory, activeCuisines, activeSpice, vegOnly, orderTime, query])
+  }, [trucks, activeCuisines, activeSpice, vegOnly, query])
 
   const promo = PROMOS[promoIndex]
-  const filterCount =
-    activeCuisines.length + (activeCategory ? 1 : 0) + (activeSpice ? 1 : 0) + (vegOnly ? 1 : 0)
+  const filterCount = activeCuisines.length + (activeSpice ? 1 : 0) + (vegOnly ? 1 : 0)
 
   return (
     <div className="uh">
-      
       <header className="uh-header">
         <div className="uh-header-inner">
           <Link to="/user" className="uh-brand">
@@ -130,24 +125,12 @@ export default function UserHome() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search trucks, dishes or cuisines"
+              placeholder="Search trucks or dishes"
               aria-label="Search trucks and dishes"
             />
           </div>
 
           <div className="uh-actions">
-            <label className="uh-select">
-              <span className="uh-select-label">View</span>
-              <select
-                value={truckScope}
-                onChange={(e) => setTruckScope(e.target.value)}
-                aria-label="Which trucks to show"
-              >
-                <option value="nearby">Nearby trucks</option>
-                <option value="all">All trucks</option>
-              </select>
-            </label>
-
             <label className="uh-select">
               <span className="uh-select-label">When</span>
               <select
@@ -161,8 +144,6 @@ export default function UserHome() {
                 <option value="120">Pre-order · in 2 hours</option>
               </select>
             </label>
-
-            <Link to="/login" className="uh-login">Login</Link>
 
             <button
               type="button"
@@ -216,20 +197,6 @@ export default function UserHome() {
           </div>
 
           <fieldset className="uh-group">
-            <legend>Cuisine</legend>
-            {CUISINES.map((cuisine) => (
-              <label key={cuisine} className="uh-check">
-                <input
-                  type="checkbox"
-                  checked={activeCuisines.includes(cuisine)}
-                  onChange={() => toggleCuisine(cuisine)}
-                />
-                {cuisine}
-              </label>
-            ))}
-          </fieldset>
-
-          <fieldset className="uh-group">
             <legend>Spice level</legend>
             {SPICE_LEVELS.map((level) => (
               <label key={level} className="uh-check">
@@ -265,7 +232,7 @@ export default function UserHome() {
                 <button
                   key={cat.id}
                   type="button"
-                  className={activeCategory === cat.id ? 'uh-category is-active' : 'uh-category'}
+                  className="uh-category"
                   onClick={() => navigate(`/user/category/${cat.id}`)}
                 >
                   <span className="uh-category-icon" aria-hidden="true">{cat.icon}</span>
@@ -277,14 +244,14 @@ export default function UserHome() {
 
           <section>
             <h2 className="uh-section-title">
-              {truckScope === 'nearby' ? 'Trucks near you' : 'All trucks'}
+              Trucks near you
               <span className="uh-count">{visibleTrucks.length}</span>
             </h2>
 
-            {visibleTrucks.length === 0 ? (
-              <p className="uh-empty">
-                No trucks match that. Try clearing a filter or widening the pre-order time.
-              </p>
+            {truckLoading ? (
+              <p className="uh-empty">Loading trucks…</p>
+            ) : visibleTrucks.length === 0 ? (
+              <p className="uh-empty">No trucks match that filter.</p>
             ) : (
               <div className="uh-trucks">
                 {visibleTrucks.map((truck) => (
@@ -295,9 +262,7 @@ export default function UserHome() {
                     </div>
                     <p className="uh-tagline">{truck.tagline}</p>
                     <div className="uh-truck-meta">
-                      <span>{truck.distanceKm} km</span><span>·</span>
-                      <span>{truck.etaMin} min</span><span>·</span>
-                      <span>{truck.veg ? 'Veg' : 'Veg & non-veg'}</span>
+                      <span>{truck.etaMin} min</span>
                     </div>
                   </article>
                 ))}

@@ -9,6 +9,7 @@ import com.food.bitesonwheels.models.Truck;
 import com.food.bitesonwheels.models.TruckSchedule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +24,7 @@ public class CustomerService {
     private final TruckScheduleRepository scheduleRepository;
     private final MenuItemRepository menuItemRepository;
 
+    @Transactional(readOnly = true)
     public List<Truck> getAllTrucks() {
         return truckRepository.findAll();
     }
@@ -58,6 +60,7 @@ public class CustomerService {
         return menuItemRepository.findByTruckTruckIdAndAvailableTrue(truckId);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, List<MenuItem>> searchFoods(String q, String tag, Boolean veg) {
         List<MenuItem> results;
 
@@ -76,7 +79,9 @@ public class CustomerService {
                     .collect(Collectors.toList());
         }
 
+        // group by truck name — access truck inside the open transaction
         return results.stream()
-                .collect(Collectors.groupingBy(item -> item.getTruck().getName()));
+                .collect(Collectors.groupingBy(item ->
+                        item.getTruck() != null ? item.getTruck().getName() : "Unknown"));
     }
 }

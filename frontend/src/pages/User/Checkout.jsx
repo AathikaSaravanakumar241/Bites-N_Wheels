@@ -5,11 +5,9 @@ import './Checkout.css'
 
 const PACKING_FEE = 20
 
-/** Next 12 quarter-hour slots, starting 45 min from now. */
 function buildSlots() {
   const start = new Date(Date.now() + 45 * 60000)
   start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15, 0, 0)
-
   return Array.from({ length: 12 }, (_, i) => {
     const t = new Date(start.getTime() + i * 15 * 60000)
     return {
@@ -25,17 +23,17 @@ export default function Checkout() {
 
   const slots = useMemo(buildSlots, [])
 
-  // Pre-filled from the signed-in account once auth exists.
-  const [name, setName] = useState('Kavita S')
-  const [phone, setPhone] = useState('9876543210')
-  const [address, setAddress] = useState('12, 2nd Street, Guindy, Chennai 600032')
+  const [name, setName]       = useState(localStorage.getItem('bnw_name')    ?? '')
+  const [phone, setPhone]     = useState('')
+  const [address, setAddress] = useState('')
 
-  const [when, setWhen] = useState('now')          // now | later
-  const [slot, setSlot] = useState(slots[0]?.value ?? '')
+  const [when, setWhen]       = useState('now')
+  const [slot, setSlot]       = useState(slots[0]?.value ?? '')
   const [payment, setPayment] = useState('cod')
-  const [note, setNote] = useState('')
-  const [errors, setErrors] = useState({})
+  const [note, setNote]       = useState('')
+  const [errors, setErrors]   = useState({})
   const [placing, setPlacing] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   if (!truck || lines.length === 0) {
     return (
@@ -61,29 +59,33 @@ export default function Checkout() {
 
   function validate() {
     const next = {}
-    if (!name.trim()) next.name = 'Enter the name for this order'
-    if (!/^\d{10}$/.test(phone.trim())) next.phone = 'Enter a 10-digit phone number'
-    if (!address.trim()) next.address = 'Enter where we should deliver'
-    if (when === 'later' && !slot) next.slot = 'Pick a pickup time'
+    if (!name.trim())                              next.name    = 'Enter the name for this order'
+    if (!/^\d{10}$/.test(phone.trim()))            next.phone   = 'Enter a 10-digit phone number'
+    if (!address.trim())                           next.address = 'Enter where we should deliver'
+    if (when === 'later' && !slot)                 next.slot    = 'Pick a pickup time'
     setErrors(next)
     return Object.keys(next).length === 0
   }
 
-  function handlePlaceOrder(e) {
+  async function handlePlaceOrder(e) {
     e.preventDefault()
     if (!validate()) return
-
     setPlacing(true)
-    const orderId = placeOrder({
-      customer: { name: name.trim(), phone: phone.trim(), address: address.trim() },
-      schedule:
-        when === 'later'
-          ? { type: 'later', at: slot, label: slots.find((s) => s.value === slot)?.label ?? '' }
-          : { type: 'now', at: null, label: `${truck.etaMin} min` },
-      payment,
-      note: note.trim(),
-    })
-    navigate(`/user/order/${orderId}`)
+    setApiError('')
+    try {
+      const orderId = await placeOrder({
+        schedule:
+          when === 'later'
+            ? { type: 'later', at: slot, label: slots.find((s) => s.value === slot)?.label ?? '' }
+            : { type: 'now',   at: null, label: `${truck.etaMin} min` },
+        payment,
+        note: note.trim(),
+      })
+      navigate(`/user/order/${orderId}`)
+    } catch (err) {
+      setApiError(err.message || 'Failed to place order. Please try again.')
+      setPlacing(false)
+    }
   }
 
   return (
@@ -97,9 +99,12 @@ export default function Checkout() {
 
       <form className="co-main" onSubmit={handlePlaceOrder} noValidate>
         <div className="co-left">
-          {/* ---------------- ACCOUNT ---------------- */}
           <section className="co-panel">
             <h2 className="co-panel-title">Your details</h2>
+
+            {apiError && (
+              <p style={{ color: 'red', fontSize: 14, marginBottom: 12 }}>{apiError}</p>
+            )}
 
             <label className="co-field">
               <span>Name</span>
@@ -136,37 +141,22 @@ export default function Checkout() {
             </label>
           </section>
 
-          {/* ---------------- TIMING ---------------- */}
           <section className="co-panel">
             <h2 className="co-panel-title">When do you want it?</h2>
 
             <label className={when === 'now' ? 'co-option is-active' : 'co-option'}>
-              <input
-                type="radio"
-                name="when"
-                checked={when === 'now'}
-                onChange={() => setWhen('now')}
-              />
+              <input type="radio" name="when" checked={when === 'now'} onChange={() => setWhen('now')} />
               <span className="co-option-body">
                 <span className="co-option-title">As soon as possible</span>
-                <span className="co-option-sub">
-                  Ready in about {truck.etaMin} minutes
-                </span>
+                <span className="co-option-sub">Ready in about {truck.etaMin} minutes</span>
               </span>
             </label>
 
             <label className={when === 'later' ? 'co-option is-active' : 'co-option'}>
-              <input
-                type="radio"
-                name="when"
-                checked={when === 'later'}
-                onChange={() => setWhen('later')}
-              />
+              <input type="radio" name="when" checked={when === 'later'} onChange={() => setWhen('later')} />
               <span className="co-option-body">
                 <span className="co-option-title">Schedule for later</span>
-                <span className="co-option-sub">
-                  Pre-order and pick a time that suits you
-                </span>
+                <span className="co-option-sub">Pre-order and pick a time that suits you</span>
               </span>
             </label>
 
@@ -187,17 +177,11 @@ export default function Checkout() {
             )}
           </section>
 
-          {/* ---------------- PAYMENT ---------------- */}
           <section className="co-panel">
             <h2 className="co-panel-title">Payment</h2>
 
             <label className={payment === 'cod' ? 'co-option is-active' : 'co-option'}>
-              <input
-                type="radio"
-                name="payment"
-                checked={payment === 'cod'}
-                onChange={() => setPayment('cod')}
-              />
+              <input type="radio" name="payment" checked={payment === 'cod'} onChange={() => setPayment('cod')} />
               <span className="co-option-body">
                 <span className="co-option-title">Cash on delivery</span>
                 <span className="co-option-sub">Pay the truck when you collect</span>
@@ -225,7 +209,6 @@ export default function Checkout() {
           </section>
         </div>
 
-        {/* ---------------- SUMMARY ---------------- */}
         <aside className="co-panel co-summary">
           <h2 className="co-panel-title">Order summary</h2>
 
