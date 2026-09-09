@@ -43,7 +43,9 @@ function write(key, value) {
   } catch {
     /* storage blocked - state still works for this page view */
   }
-  window.dispatchEvent(new Event(EVENT))
+  // Defer so this never fires synchronously during a React render/event handler,
+  // which would cause "Cannot update a component while rendering a different component".
+  setTimeout(() => window.dispatchEvent(new Event(EVENT)), 0)
 }
 
 export function useVendorStatus() {

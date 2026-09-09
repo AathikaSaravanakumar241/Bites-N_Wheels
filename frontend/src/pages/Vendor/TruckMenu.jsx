@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { get as apiGet, post as apiPost, put as apiPut, del as apiDel } from "../../api.js";
 import "./TruckMenu.css";
 
-const API_URL = "/api/menu-items";
+const API_URL = "/api/v1/truck/menu-items";
 
 function TruckMenu() {
     const [menuItems, setMenuItems] = useState([]);
@@ -25,20 +26,11 @@ function TruckMenu() {
         setLoading(true);
         setError("");
 
-        fetch(API_URL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch menu items");
-                }
-
-                return response.json();
-            })
+        apiGet(API_URL)
             .then(data => {
-                console.log(data);
-                setMenuItems(data);
+                setMenuItems(Array.isArray(data) ? data : []);
             })
-            .catch(error => {
-                console.log(error);
+            .catch(() => {
                 setError("Unable to load menu items from Spring Boot");
             })
             .finally(() => {
@@ -121,28 +113,13 @@ function TruckMenu() {
                     : availableFrom
         };
 
-        fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(menu)
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to add menu item");
-                }
-
-                return response.json();
-            })
-            .then(data => {
-                console.log(data);
+        apiPost(API_URL, menu)
+            .then(() => {
                 alert("Food item added successfully");
                 clearForm();
                 getMenu();
             })
-            .catch(error => {
-                console.log(error);
+            .catch(() => {
                 alert("Unable to add food item");
             });
     }
@@ -170,28 +147,13 @@ function TruckMenu() {
                     : availableFrom
         };
 
-        fetch(`${API_URL}/${editingId}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(menu)
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to update menu item");
-                }
-
-                return response.json();
-            })
-            .then(data => {
-                console.log(data);
+        apiPut(`${API_URL}/${editingId}`, menu)
+            .then(() => {
                 alert("Food item updated successfully");
                 clearForm();
                 getMenu();
             })
-            .catch(error => {
-                console.log(error);
+            .catch(() => {
                 alert("Unable to update food item");
             });
     }
@@ -205,20 +167,12 @@ function TruckMenu() {
             return;
         }
 
-        fetch(`${API_URL}/${id}`, {
-            method: "DELETE"
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to delete menu item");
-                }
-            })
+        apiDel(`${API_URL}/${id}`)
             .then(() => {
                 alert("Food item deleted successfully");
                 getMenu();
             })
-            .catch(error => {
-                console.log(error);
+            .catch(() => {
                 alert("Unable to delete food item");
             });
     }

@@ -4,14 +4,11 @@ import VendorLayout from './VendorLayout.jsx'
 import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorHome.css'
 
-/* Relative path so Vite's dev proxy forwards to Spring on :8080 and
-   the same build works in production. See vite.config.js. */
-const ORDERS_URL = '/api/orders'
+import { get as apiGet } from '../../api.js'
+const ORDERS_URL = '/api/v1/truck/orders'
 
-/** Backend statuses, in the order an order moves through them. */
 const OPEN_STATUSES = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
 
-/** Orders API shape is inconsistent about user - handle both. */
 function customerName(user) {
   if (!user) return 'Guest'
   if (typeof user === 'string') return user
@@ -52,25 +49,11 @@ export default function VendorHome() {
     setLoading(true)
     setError('')
 
-    fetch(ORDERS_URL)
-      .then((response) => {
-        if (!response.ok) {
-          const err = new Error(`Request failed with ${response.status}`)
-          err.status = response.status
-          throw err
-        }
-        return response.json()
-      })
+    apiGet(ORDERS_URL)
       .then((data) => setOrders(Array.isArray(data) ? data : []))
       .catch((err) => {
-        console.error(err)
-        // 401/403 means the backend answered but Spring Security refused,
-        // which is a very different fix from the server being down.
         if (err.status === 401 || err.status === 403) {
-          setError(
-            `Backend refused the request (${err.status}). /api/orders is behind Spring Security — ` +
-              'it needs a logged-in vendor token, or the endpoint must be permitted.',
-          )
+          setError('Session expired. Please log in again.')
         } else {
           setError('Unable to load orders. Check that the backend is running on port 8080.')
         }

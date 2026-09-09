@@ -1,80 +1,90 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import truck from "../assets/New_img.png";
+import { post, saveToken } from "../api.js";
 
 function Login() {
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    // Temporary login logic
-    // Later connect this with your backend
+  const [email, setEmail]       = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
-    const role = "VENDOR";
+  async function handleLogin(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    localStorage.setItem("role", role);
+    try {
+      const data = await post("/api/auth/login", { email, password }, false);
 
-    navigate(role === "VENDOR" ? "/vendor" : "/user");
-  };
+      saveToken(data.token);
+      localStorage.setItem("bnw_role",   data.role);
+      localStorage.setItem("bnw_userId", data.userId);
+      localStorage.setItem("bnw_name",   data.name);
+      localStorage.setItem("bnw_email",  data.email);
 
-  const handleRegister = () => {
-    navigate("/register");
-  };
+      navigate(data.role === "TRUCK_OWNER" ? "/vendor" : "/user");
+    } catch (err) {
+      setError(err.message || "Login failed. Check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="login-page">
-
       <div className="login-container">
 
-        {/* LEFT SIDE - LOGIN FORM */}
         <div className="login-form">
-
           <h1>Bites-N-Wheels | Login</h1>
 
-          <label>Email / Phone</label>
+          {error && (
+            <p style={{ color: "red", marginBottom: "var(--space-3)", fontSize: 14 }}>
+              {error}
+            </p>
+          )}
 
-          <input
-            type="text"
-            placeholder="Enter your email or phone"
-          />
+          <form onSubmit={handleLogin}>
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-          <label>Password</label>
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-          <input
-            type="password"
-            placeholder="Enter your password"
-          />
-
-          <div className="login-buttons">
-
-            <button
-              className="btn"
-              onClick={handleLogin}
-            >
-              Login
-            </button>
-
-            <button
-              className="btn btn-secondary"
-              onClick={handleRegister}
-            >
-              Register
-            </button>
-
-          </div>
-
+            <div className="login-buttons">
+              <button type="submit" className="btn" disabled={loading}>
+                {loading ? "Logging in…" : "Login"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* RIGHT SIDE - FOOD TRUCK */}
         <div className="login-image">
-
-          <img
-            src={truck}
-            alt="Bites N Wheels Food Truck"
-          />
-
+          <img src={truck} alt="Bites N Wheels Food Truck" />
         </div>
 
       </div>
-
     </div>
   );
 }

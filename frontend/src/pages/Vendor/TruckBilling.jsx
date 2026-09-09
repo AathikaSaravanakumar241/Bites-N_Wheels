@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { get as apiGet, post as apiPost } from "../../api.js";
 import "./TruckBilling.css";
 
-const MENU_API_URL = "/api/menu-items";
+const MENU_API_URL = "/api/v1/truck/menu-items";
+const ORDER_API_URL = "/api/v1/truck/offline-orders";
 
 function TruckBilling() {
     const [menuItems, setMenuItems] = useState([]);
@@ -24,23 +26,14 @@ function TruckBilling() {
         setLoading(true);
         setError("");
 
-        fetch(MENU_API_URL)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch menu items");
-                }
-
-                return response.json();
-            })
+        apiGet(MENU_API_URL)
             .then((data) => {
                 const availableItems = Array.isArray(data)
                     ? data.filter((item) => item.available === true)
                     : [];
-
                 setMenuItems(availableItems);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 setError("Unable to load food items. Please check the backend.");
             })
             .finally(() => {
@@ -165,26 +158,24 @@ function TruckBilling() {
             return;
         }
 
-        const bill = {
-            customerName: customerName.trim(),
-            orderType: "OFFLINE",
-            status: "COMPLETED",
-            paymentMethod: paymentMethod,
-            totalAmount: getTotal(),
+        const body = {
+            stationId:     null,
+            totalAmount:   getTotal(),
             items: billItems.map((item) => ({
-                itemId: item.itemId,
-                quantity: item.quantity,
+                itemId:       item.itemId,
+                quantity:     item.quantity,
                 priceAtOrder: item.price,
             })),
         };
 
-        console.log("Offline Bill:", bill);
-
-        setMessage("Bill generated successfully.");
-
-        setTimeout(() => {
-            clearBill();
-        }, 1500);
+        apiPost(ORDER_API_URL, body)
+            .then(() => {
+                setMessage("Bill generated and order saved successfully.");
+                setTimeout(() => { clearBill(); }, 1500);
+            })
+            .catch(() => {
+                setError("Failed to save the order. Please try again.");
+            });
     }
 
     return (

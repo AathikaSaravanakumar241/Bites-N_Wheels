@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { get as apiGet, patch as apiPatch } from "../../api.js";
 import "./TruckOrders.css";
 
-const API_URL = "/api/orders";
+const API_URL = "/api/v1/truck/orders";
 
 function TruckOrders() {
     const [orders, setOrders] = useState([]);
@@ -16,19 +17,11 @@ function TruckOrders() {
         setLoading(true);
         setError("");
 
-        fetch(API_URL)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch orders");
-                }
-
-                return response.json();
-            })
+        apiGet(API_URL)
             .then((data) => {
                 setOrders(Array.isArray(data) ? data : []);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 setError("Unable to load orders. Please check the backend.");
             })
             .finally(() => {
@@ -39,27 +32,11 @@ function TruckOrders() {
     function updateStatus(orderId, status) {
         setError("");
 
-        fetch(`${API_URL}/${orderId}/status`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                status: status,
-            }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to update order status");
-                }
-
-                return response.json();
-            })
+        apiPatch(`${API_URL}/${orderId}/status`, { status })
             .then(() => {
                 getOrders();
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 setError("Unable to update order status.");
             });
     }
