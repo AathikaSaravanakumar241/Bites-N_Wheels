@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { get as apiGet, post as apiPost } from "../../api.js";
+import { get as apiGet, post as apiPost, describeError } from "../../api.js";
 import "./TruckBilling.css";
 
 const MENU_API_URL = "/api/v1/truck/menu-items";
@@ -33,8 +33,8 @@ function TruckBilling() {
                     : [];
                 setMenuItems(availableItems);
             })
-            .catch(() => {
-                setError("Unable to load food items. Please check the backend.");
+            .catch((err) => {
+                setError(describeError(err, "Unable to load food items."));
             })
             .finally(() => {
                 setLoading(false);

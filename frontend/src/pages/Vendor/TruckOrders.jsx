@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { get as apiGet, patch as apiPatch } from "../../api.js";
+import { get as apiGet, patch as apiPatch, describeError } from "../../api.js";
 import "./TruckOrders.css";
 
 const API_URL = "/api/v1/truck/orders";
@@ -21,8 +21,8 @@ function TruckOrders() {
             .then((data) => {
                 setOrders(Array.isArray(data) ? data : []);
             })
-            .catch(() => {
-                setError("Unable to load orders. Please check the backend.");
+            .catch((err) => {
+                setError(describeError(err, "Unable to load orders."));
             })
             .finally(() => {
                 setLoading(false);
@@ -62,15 +62,10 @@ function TruckOrders() {
     }
 
     function getCustomerName(order) {
-        if (order.user?.name) {
-            return order.user.name;
-        }
-
-        if (order.user?.username) {
-            return order.user.username;
-        }
-
-        return "Guest";
+        // The API now sends customerName directly. It used to read order.user,
+        // which is @JsonIgnore'd on the entity and so was always undefined -
+        // every order showed as "Guest".
+        return order.customerName || "Walk-in";
     }
 
     function getFoodItems(order) {
@@ -79,7 +74,8 @@ function TruckOrders() {
         }
 
         return order.items.map((item, index) => {
-            const itemName = item.item?.name || "Food Item";
+            // Was item.item?.name - also @JsonIgnore'd, hence "Food Item".
+            const itemName = item.name || "Item";
             const quantity = item.quantity || 1;
 
             return (

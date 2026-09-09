@@ -1,104 +1,92 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
-import { get } from '../../api.js'
+import { useArea } from './useArea.js'
+import AreaPicker from './AreaPicker.jsx'
+import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
 import logo from '../../assets/logo.jpeg'
 import './UserHome.css'
 
 const PROMOS = [
-  { id: 1, tag: 'New user',  title: '50% off your first order', text: 'Use code FIRST50 at any truck near you.' },
+  { id: 1, tag: 'New user',   title: '50% off your first order', text: 'Use code FIRST50 at any truck near you.' },
   { id: 2, tag: 'Today only', title: 'Free delivery till 9 PM',  text: 'On every pre-order placed before 6 PM today.' },
   { id: 3, tag: 'Late night', title: 'Late night cravings?',     text: '12 trucks are serving past midnight this week.' },
 ]
 
-const CATEGORIES = [
-  { id: 'pizza',    label: 'Pizza',     icon: '🍕' },
-  { id: 'waffles',  label: 'Waffles',   icon: '🧇' },
-  { id: 'burger',   label: 'Burger',    icon: '🍔' },
-  { id: 'tacos',    label: 'Tacos',     icon: '🌮' },
-  { id: 'biryani',  label: 'Biryani',   icon: '🍛' },
-  { id: 'noodles',  label: 'Noodles',   icon: '🍜' },
-  { id: 'rolls',    label: 'Rolls',     icon: '🌯' },
-  { id: 'coffee',   label: 'Coffee',    icon: '☕' },
-  { id: 'desserts', label: 'Desserts',  icon: '🍩' },
-  { id: 'icecream', label: 'Ice Cream', icon: '🍦' },
-]
-
-const CUISINES     = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
-const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
-
 export default function UserHome() {
   const navigate = useNavigate()
+  const { area } = useArea()
+  const { count: cartCount } = useCart()
 
-  const [trucks, setTrucks]           = useState([])
-  const [truckLoading, setTruckLoading] = useState(true)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [trucks, setTrucks] = useState([])
+  const [items, setItems] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const [location, setLocation]       = useState('Chennai, Guindy')
-  const [query, setQuery]             = useState('')
-  const [truckScope, setTruckScope]   = useState('all')
-  const [orderTime, setOrderTime]     = useState('now')
-  const { count: cartCount }          = useCart()
-
-  const [activeCuisines, setActiveCuisines] = useState([])
-  const [activeSpice, setActiveSpice]       = useState(null)
-  const [vegOnly, setVegOnly]               = useState(false)
-
+  const [query, setQuery] = useState('')
+  const [activeCategories, setActiveCategories] = useState([])
+  const [vegOnly, setVegOnly] = useState(false)
   const [promoIndex, setPromoIndex] = useState(0)
 
+  // Everything below is scoped to the chosen area.
   useEffect(() => {
-    get('/api/v1/trucks', false)
-      .then((data) => {
-        setTrucks(Array.isArray(data) ? data.map((t) => ({
-          id:         t.truckId,
-          name:       t.name,
-          tagline:    t.tagline ?? '',
-          status:     t.status,
-          rating:     4.5,
-          distanceKm: 1.0,
-          etaMin:     20,
-          veg:        false,
-        })) : [])
+    if (!area) return
+    setLoading(true)
+    setError('')
+    fetchAreaCatalog(area.id)
+      .then(({ trucks, items, categories }) => {
+        setTrucks(trucks)
+        setItems(items)
+        setCategories(categories)
       })
-      .catch(() => setTrucks([]))
-      .finally(() => setTruckLoading(false))
-  }, [])
+      .catch(() => {
+        setTrucks([]); setItems([]); setCategories([])
+        setError('Could not load food for this area.')
+      })
+      .finally(() => setLoading(false))
+  }, [area])
 
   useEffect(() => {
     const timer = setInterval(() => setPromoIndex((i) => (i + 1) % PROMOS.length), 4000)
     return () => clearInterval(timer)
   }, [])
 
-  function toggleCuisine(cuisine) {
-    setActiveCuisines((current) =>
-      current.includes(cuisine) ? current.filter((c) => c !== cuisine) : [...current, cuisine]
-    )
+  function toggleCategory(id) {
+    setActiveCategories((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]))
   }
 
   function clearFilters() {
-    setActiveCuisines([])
-    setActiveSpice(null)
+    setActiveCategories([])
     setVegOnly(false)
   }
 
-  const visibleTrucks = useMemo(() => {
-    return trucks.filter((truck) => {
-      if (truck.status === 'INACTIVE') return false
-      if (activeCuisines.length && !activeCuisines.includes(truck.cuisine)) return false
-      if (activeSpice && truck.spice !== activeSpice) return false
-      if (vegOnly && !truck.veg) return false
+  // One card per dish, even when several trucks bring it.
+  const dishes = useMemo(() => {
+    const filtered = items.filter((i) => {
+      if (!i.available) return false
+      if (activeCategories.length && !activeCategories.includes(i.category)) return false
+      if (vegOnly && !i.veg) return false
       if (query.trim()) {
-        const haystack = `${truck.name} ${truck.tagline}`.toLowerCase()
-        if (!haystack.includes(query.trim().toLowerCase())) return false
+        const q = query.trim().toLowerCase()
+        if (!`${i.name} ${i.tag} ${i.truckName}`.toLowerCase().includes(q)) return false
       }
       return true
     })
-  }, [trucks, activeCuisines, activeSpice, vegOnly, query])
+    return groupByDish(filtered)
+  }, [items, activeCategories, vegOnly, query])
 
   const promo = PROMOS[promoIndex]
-  const filterCount = activeCuisines.length + (activeSpice ? 1 : 0) + (vegOnly ? 1 : 0)
+  const filterCount = activeCategories.length + (vegOnly ? 1 : 0)
+
+  // No area chosen yet - nothing else can be shown.
+  if (!area) return <AreaPicker />
 
   return (
     <div className="uh">
+      {pickerOpen && <AreaPicker onClose={() => setPickerOpen(false)} />}
+
       <header className="uh-header">
         <div className="uh-header-inner">
           <Link to="/user" className="uh-brand">
@@ -106,16 +94,9 @@ export default function UserHome() {
             <span className="uh-brand-name">Bites N Wheels</span>
           </Link>
 
-          <button
-            type="button"
-            className="uh-location"
-            onClick={() => {
-              const next = window.prompt('Set your location', location)
-              if (next) setLocation(next)
-            }}
-          >
+          <button type="button" className="uh-location" onClick={() => setPickerOpen(true)}>
             <span aria-hidden="true">📍</span>
-            <span className="uh-location-text">{location}</span>
+            <span className="uh-location-text">{area.name}</span>
             <span className="uh-caret" aria-hidden="true">▾</span>
           </button>
 
@@ -125,37 +106,24 @@ export default function UserHome() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search trucks or dishes"
-              aria-label="Search trucks and dishes"
+              placeholder={`Search food coming to ${area.name}`}
+              aria-label="Search food"
             />
           </div>
 
           <div className="uh-actions">
-            <label className="uh-select">
-              <span className="uh-select-label">When</span>
-              <select
-                value={orderTime}
-                onChange={(e) => setOrderTime(e.target.value)}
-                aria-label="When do you want the order"
-              >
-                <option value="now">Order now</option>
-                <option value="30">Pre-order · in 30 min</option>
-                <option value="60">Pre-order · in 1 hour</option>
-                <option value="120">Pre-order · in 2 hours</option>
-              </select>
-            </label>
-
-            <button
-              type="button"
-              className="uh-cart"
-              onClick={() => navigate('/user/cart')}
-            >
+            <button type="button" className="uh-cart" onClick={() => navigate('/user/cart')}>
               <span aria-hidden="true">🛒</span>
               <span className="uh-cart-text">My items</span>
               {cartCount > 0 && <span className="uh-badge">{cartCount}</span>}
             </button>
 
-            <button type="button" className="uh-profile" aria-label="Your profile">
+            <button
+              type="button"
+              className="uh-profile"
+              aria-label="Your profile"
+              onClick={() => navigate('/user/profile')}
+            >
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <circle cx="12" cy="8" r="4" fill="currentColor" />
                 <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"
@@ -197,74 +165,113 @@ export default function UserHome() {
           </div>
 
           <fieldset className="uh-group">
-            <legend>Spice level</legend>
-            {SPICE_LEVELS.map((level) => (
-              <label key={level} className="uh-check">
-                <input
-                  type="radio"
-                  name="spice"
-                  checked={activeSpice === level}
-                  onChange={() => setActiveSpice(level)}
-                />
-                {level}
-              </label>
-            ))}
+            <legend>Category</legend>
+            {categories.length === 0 ? (
+              <p className="uh-check uh-dim">{loading ? 'Loading…' : 'Nothing arriving yet'}</p>
+            ) : (
+              categories.map((cat) => (
+                <label key={cat.id} className="uh-check">
+                  <input
+                    type="checkbox"
+                    checked={activeCategories.includes(cat.id)}
+                    onChange={() => toggleCategory(cat.id)}
+                  />
+                  {cat.label}
+                </label>
+              ))
+            )}
           </fieldset>
 
           <fieldset className="uh-group">
             <legend>Preference</legend>
             <label className="uh-check">
-              <input
-                type="checkbox"
-                checked={vegOnly}
-                onChange={(e) => setVegOnly(e.target.checked)}
-              />
+              <input type="checkbox" checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} />
               Veg only
             </label>
           </fieldset>
+
+          <div className="uh-trucks-today">
+            <h3 className="uh-side-h">Trucks in {area.name}</h3>
+            {trucks.length === 0 ? (
+              <p className="uh-dim">None scheduled today.</p>
+            ) : (
+              trucks.map((t) => (
+                <div key={t.scheduleId ?? t.id} className="uh-mini-truck">
+                  <span className="uh-mini-name">{t.name}</span>
+                  <span className="uh-mini-time">
+                    {formatTime(t.arrivalTime)} – {formatTime(t.departureTime)}
+                  </span>
+                  <span className={`uh-state is-${t.state}`}>
+                    {t.state === 'here' ? 'Here now' : t.state === 'left' ? 'Left' : 'Arriving'}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
         </aside>
 
         <main className="uh-content">
           <section>
             <h2 className="uh-section-title">What are you craving?</h2>
-            <div className="uh-categories">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className="uh-category"
-                  onClick={() => navigate(`/user/category/${cat.id}`)}
-                >
-                  <span className="uh-category-icon" aria-hidden="true">{cat.icon}</span>
-                  <span className="uh-category-label">{cat.label}</span>
-                </button>
-              ))}
-            </div>
+            {categories.length === 0 ? (
+              <p className="uh-empty">
+                {loading ? 'Loading…' : `No trucks are scheduled in ${area.name} today.`}
+              </p>
+            ) : (
+              <div className="uh-categories">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className="uh-category"
+                    onClick={() => navigate(`/user/category/${cat.id}`)}
+                  >
+                    <span className="uh-category-icon" aria-hidden="true">{cat.icon}</span>
+                    <span className="uh-category-label">{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
 
           <section>
             <h2 className="uh-section-title">
-              Trucks near you
-              <span className="uh-count">{visibleTrucks.length}</span>
+              Coming to {area.name} today
+              <span className="uh-count">{dishes.length}</span>
             </h2>
 
-            {truckLoading ? (
-              <p className="uh-empty">Loading trucks…</p>
-            ) : visibleTrucks.length === 0 ? (
-              <p className="uh-empty">No trucks match that filter.</p>
+            {error && <p className="uh-empty">{error}</p>}
+
+            {loading ? (
+              <p className="uh-empty">Loading food…</p>
+            ) : dishes.length === 0 ? (
+              <p className="uh-empty">
+                {items.length === 0
+                  ? `No trucks are visiting ${area.name} today. Try another area.`
+                  : 'Nothing matches those filters.'}
+              </p>
             ) : (
-              <div className="uh-trucks">
-                {visibleTrucks.map((truck) => (
-                  <article key={truck.id} className="uh-truck">
-                    <div className="uh-truck-top">
-                      <h3>{truck.name}</h3>
-                      <span className="uh-rating">★ {truck.rating}</span>
-                    </div>
-                    <p className="uh-tagline">{truck.tagline}</p>
-                    <div className="uh-truck-meta">
-                      <span>{truck.etaMin} min</span>
-                    </div>
-                  </article>
+              <div className="uh-dishes">
+                {dishes.map((dish) => (
+                  <button
+                    key={dish.key}
+                    type="button"
+                    className="uh-dish"
+                    onClick={() => navigate(`/user/food/${encodeURIComponent(dish.name)}`)}
+                  >
+                    <span className="uh-dish-head">
+                      <span className={dish.veg ? 'uh-veg' : 'uh-veg is-nonveg'} aria-hidden="true" />
+                      <span className="uh-dish-name">{dish.name}</span>
+                    </span>
+                    <span className="uh-dish-desc">{dish.desc}</span>
+                    <span className="uh-dish-foot">
+                      <span className="uh-dish-price">from ₹{dish.minPrice}</span>
+                      <span className="uh-dish-trucks">
+                        {dish.truckCount} truck{dish.truckCount === 1 ? '' : 's'}
+                      </span>
+                    </span>
+                    <span className="uh-dish-eta">First arrival {formatTime(dish.earliest)}</span>
+                  </button>
                 ))}
               </div>
             )}

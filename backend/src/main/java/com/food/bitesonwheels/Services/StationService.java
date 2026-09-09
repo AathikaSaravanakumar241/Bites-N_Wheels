@@ -1,13 +1,18 @@
 package com.food.bitesonwheels.Services;
 
+import com.food.bitesonwheels.Repository.MenuItemRepository;
 import com.food.bitesonwheels.Repository.OrderRepository;
 import com.food.bitesonwheels.Repository.StationRepository;
 import com.food.bitesonwheels.Repository.TruckScheduleRepository;
+import com.food.bitesonwheels.dto.AreaTruckDTO;
 import com.food.bitesonwheels.dto.TrackingDTO;
 import com.food.bitesonwheels.models.Orders;
 import com.food.bitesonwheels.models.Station;
+import com.food.bitesonwheels.models.Truck;
 import com.food.bitesonwheels.models.TruckSchedule;
+import com.food.bitesonwheels.models.enums.TruckStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +28,73 @@ public class StationService {
     private final TruckScheduleRepository scheduleRepository;
     private final StationRepository       stationRepository;
     private final OrderRepository         orderRepository;
+    private final MenuItemRepository      menuItemRepository;
+
+    /**
+     * Areas a customer can pick from, alphabetical - and the same list the
+     * owner picks a stop from.
+     *
+     * `app.demo.areas` narrows this to a handful of areas so a demo can be
+     * walked end to end without hunting for one that has food. Leave the
+     * property empty to serve every area.
+     */
+    @Value("${app.demo.areas:}")
+    private List<String> demoAreas;
+
+    public List<Station> getAllStations() {
+        return stationRepository.findAll()
+                .stream()
+                .filter(st -> demoAreas.isEmpty() || demoAreas.contains(st.getName()))
+                .sorted(Comparator.comparing(Station::getName))
+                .toList();
+    }
+
+    /**
+     * Every truck visiting this area today, with the food it is carrying.
+     * This is the customer's entry point: pick an area, see the food.
+     * Only ACTIVE trucks and available items are returned - a closed truck
+     * or a sold-out dish should not appear as orderable.
+     */
+    @Transactional(readOnly = true)
+    public List<AreaTruckDTO> getTrucksAtStation(Long stationId) {
+        stationRepository.findById(stationId)
+                .orElseThrow(() -> new RuntimeException("Station not found " + stationId));
+
+        return scheduleRepository.findByStationAndDate(stationId, LocalDate.now())
+                .stream()
+                .filter(s -> s.getTruck().getStatus() != TruckStatus.INACTIVE)
+                .map(s -> {
+                    Truck truck = s.getTruck();
+
+                    List<AreaTruckDTO.Item> items = menuItemRepository
+                            .findByTruckTruckIdAndAvailableTrue(truck.getTruckId())
+                            .stream()
+                            .map(i -> AreaTruckDTO.Item.builder()
+                                    .itemId(i.getItemId())
+                                    .name(i.getName())
+                                    .description(i.getDescription())
+                                    .price(i.getPrice())
+                                    .foodType(i.getFoodType() == null ? null : i.getFoodType().name())
+                                    .categoryTag(i.getCategoryTag())
+                                    .available(i.getAvailable())
+                                    .stockQuantity(i.getStockQuantity())
+                                    .build())
+                            .toList();
+
+                    return AreaTruckDTO.builder()
+                            .truckId(truck.getTruckId())
+                            .truckName(truck.getName())
+                            .tagline(truck.getTagline())
+                            .truckStatus(truck.getStatus() == null ? null : truck.getStatus().name())
+                            .scheduleId(s.getScheduleId())
+                            .arrivalTime(s.getArrivalTime())
+                            .departureTime(s.getDepartureTime())
+                            .scheduleStatus(s.getStatus() == null ? null : s.getStatus().name())
+                            .items(items)
+                            .build();
+                })
+                .toList();
+    }
 
     public List<TruckSchedule> getTodayStations(Long truckId) {
         return scheduleRepository

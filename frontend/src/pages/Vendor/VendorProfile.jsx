@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import VendorLayout from './VendorLayout.jsx'
 import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorProfile.css'
@@ -9,11 +9,20 @@ const CUISINES = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican
 const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
 
 export default function VendorProfile() {
-  const { profile, setProfile, isOpen } = useVendorStatus()
+  const { profile, setProfile, isOpen, loading } = useVendorStatus()
 
   const [form, setForm] = useState(profile)
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  // The profile now arrives from the API, so the first render has only the
+  // cached (or empty) copy. Track it until that first load lands, then leave
+  // the form alone so it never clobbers what the owner is typing.
+  useEffect(() => {
+    if (loading) setForm(profile)
+  }, [loading, profile])
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -31,11 +40,21 @@ export default function VendorProfile() {
     return Object.keys(next).length === 0
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!validate()) return
-    setProfile(form)
-    setSaved(true)
+    setSaving(true)
+    setSaveError('')
+    try {
+      await setProfile(form)
+      setSaved(true)
+    } catch (err) {
+      // Previously this wrote to localStorage and could not fail. It now hits
+      // the API, so a failure has to be visible rather than silently "Saved".
+      setSaveError(err.message || 'Could not save your profile. Try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const dirty = JSON.stringify(form) !== JSON.stringify(profile)
@@ -192,11 +211,12 @@ export default function VendorProfile() {
               </p>
             )}
 
-            <button type="submit" className="vp-save" disabled={!dirty}>
-              {dirty ? 'Save profile' : 'Saved'}
+            <button type="submit" className="vp-save" disabled={!dirty || saving}>
+              {saving ? 'Saving…' : dirty ? 'Save profile' : 'Saved'}
             </button>
 
-            {saved && !dirty && <p className="vp-saved">Profile updated.</p>}
+            {saved && !dirty && !saveError && <p className="vp-saved">Profile updated.</p>}
+            {saveError && <p className="vp-error">{saveError}</p>}
           </section>
         </aside>
       </form>

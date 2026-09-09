@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { get as apiGet, post as apiPost, put as apiPut, del as apiDel } from "../../api.js";
+import { get as apiGet, post as apiPost, put as apiPut, del as apiDel, describeError } from "../../api.js";
 import "./TruckMenu.css";
 
 const API_URL = "/api/v1/truck/menu-items";
@@ -8,6 +8,7 @@ function TruckMenu() {
     const [menuItems, setMenuItems] = useState([]);
 
     const [truckId, setTruckId] = useState("");
+    const [myTruck, setMyTruck] = useState(null);
     const [foodType, setFoodType] = useState("");
     const [categoryTag, setCategoryTag] = useState("");
 
@@ -22,6 +23,22 @@ function TruckMenu() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    // The truck list used to be derived from existing menu items, which meant a
+    // new owner - who has none yet - could never select a truck, and so could
+    // never add a first item. The backend resolves the truck from the token
+    // anyway; this just needs to know which one it is.
+    useEffect(() => {
+        apiGet("/api/v1/truck/me")
+            .then(truck => {
+                if (!truck) return;
+                setMyTruck(truck);
+                setTruckId(String(truck.truckId));
+            })
+            .catch(() => {
+                /* falls back to the ids discovered from existing menu items */
+            });
+    }, []);
+
     function getMenu() {
         setLoading(true);
         setError("");
@@ -30,29 +47,23 @@ function TruckMenu() {
             .then(data => {
                 setMenuItems(Array.isArray(data) ? data : []);
             })
-            .catch(() => {
-                setError("Unable to load menu items from Spring Boot");
+            .catch((err) => {
+                setError(describeError(err, "Unable to load menu items."));
             })
             .finally(() => {
                 setLoading(false);
             });
     }
 
-    const truckIds = [
-        ...new Set(
-            menuItems
-                .map(item => item.truckId)
-                .filter(id => id !== null && id !== undefined)
-        )
-    ];
+    // An owner has exactly one truck, created at registration.
+    const truckIds = myTruck ? [myTruck.truckId] : [];
 
-    const truckItems = menuItems.filter(item => {
-        if (truckId === "") {
-            return false;
-        }
-
-        return String(item.truckId) === String(truckId);
-    });
+    // GET /api/v1/truck/menu-items is already scoped to the signed-in owner's
+    // truck, and the MenuItem JSON carries no truckId (the `truck` relation is
+    // @JsonIgnore'd to keep the lazy proxy out of the response). Filtering on
+    // item.truckId therefore compared against undefined and matched nothing,
+    // which is why the menu always read "No food items found".
+    const truckItems = truckId === "" ? [] : menuItems;
 
     const foodTypeItems = truckItems.filter(item => {
         if (foodType === "") {
@@ -74,6 +85,22 @@ function TruckMenu() {
         )
     ];
 
+    // Suggestions for the Add form. Deliberately wider than `categories`
+    // above (which drives the filter dropdown and follows the current
+    // filters): here we want every tag this truck has ever used, plus the
+    // common ones, so a brand-new truck still gets useful hints.
+    const COMMON_CATEGORIES = [
+        "Beverages", "Biryani", "Burgers", "Desserts", "North Indian",
+        "Pizza", "Rolls", "Snacks", "South Indian", "Street Food",
+    ];
+
+    const knownCategories = [
+        ...new Set([
+            ...menuItems.map(item => item.categoryTag).filter(Boolean),
+            ...COMMON_CATEGORIES,
+        ]),
+    ].sort((a, b) => a.localeCompare(b));
+
     const displayedItems = foodTypeItems.filter(item => {
         if (categoryTag === "") {
             return true;
@@ -83,15 +110,24 @@ function TruckMenu() {
     });
 
     function addMenu() {
-        if (
-            truckId === "" ||
-            foodType === "" ||
-            categoryTag === "" ||
-            name === "" ||
-            description === "" ||
-            price === ""
-        ) {
-            alert("Please fill all required fields");
+        // Name the missing fields. The old message just said "fill all
+        // required fields", which is no help when one of them is off-screen.
+        const missing = [
+            [truckId === "", "Truck"],
+            [foodType === "", "Food Type"],
+            [categoryTag.trim() === "", "Category"],
+            [name.trim() === "", "Food Name"],
+            [description.trim() === "", "Description"],
+            [String(price).trim() === "", "Price"],
+        ].filter(([bad]) => bad).map(([, label]) => label);
+
+        if (missing.length > 0) {
+            alert("Please fill: " + missing.join(", "));
+            return;
+        }
+
+        if (Number(price) <= 0 || Number.isNaN(Number(price))) {
+            alert("Price must be a number greater than 0.");
             return;
         }
 
@@ -100,7 +136,7 @@ function TruckMenu() {
             name: name,
             description: description,
             price: Number(price),
-            categoryTag: categoryTag,
+            categoryTag: categoryTag.trim(),
             foodType: foodType,
             available: available,
             stockQuantity:
@@ -134,7 +170,7 @@ function TruckMenu() {
             name: name,
             description: description,
             price: Number(price),
-            categoryTag: categoryTag,
+            categoryTag: categoryTag.trim(),
             foodType: foodType,
             available: available,
             stockQuantity:
@@ -197,7 +233,10 @@ function TruckMenu() {
 
     function clearForm() {
         setEditingId(null);
-        setTruckId("");
+        // Keep the truck selected. There is only ever one for this owner, and
+        // clearing it hid the menu list behind "Select a truck" after every
+        // add - exactly when you want to see what you just added.
+        setTruckId(myTruck ? String(myTruck.truckId) : "");
         setFoodType("");
         setCategoryTag("");
         setName("");
@@ -247,7 +286,9 @@ function TruckMenu() {
 
                         {truckIds.map(id => (
                             <option key={id} value={id}>
-                                Truck {id}
+                                {myTruck && String(myTruck.truckId) === String(id)
+                                    ? myTruck.name
+                                    : `Truck ${id}`}
                             </option>
                         ))}
                     </select>
@@ -274,27 +315,25 @@ function TruckMenu() {
                 <div className="form-group">
                     <label>Category</label>
 
-                    <select
+                    {/* Free text, not a select: the category list is built from
+                        this truck's existing items, so on a new truck it is
+                        empty and there would be nothing to pick - making the
+                        first item impossible to add. The datalist still offers
+                        whatever has been used before. */}
+                    <input
+                        type="text"
+                        list="category-suggestions"
                         value={categoryTag}
-                        disabled={
-                            truckId === "" ||
-                            foodType === ""
-                        }
-                        onChange={e =>
-                            setCategoryTag(e.target.value)
-                        }
-                    >
-                        <option value="">Select Category</option>
+                        disabled={truckId === "" || foodType === ""}
+                        placeholder="e.g. Biryani, Beverages, Street Food"
+                        onChange={e => setCategoryTag(e.target.value)}
+                    />
 
-                        {categories.map((category, index) => (
-                            <option
-                                key={index}
-                                value={category}
-                            >
-                                {category}
-                            </option>
+                    <datalist id="category-suggestions">
+                        {knownCategories.map((category, index) => (
+                            <option key={index} value={category} />
                         ))}
-                    </select>
+                    </datalist>
                 </div>
 
                 <div className="form-group">
@@ -418,7 +457,9 @@ function TruckMenu() {
 
                         {truckIds.map(id => (
                             <option key={id} value={id}>
-                                Truck {id}
+                                {myTruck && String(myTruck.truckId) === String(id)
+                                    ? myTruck.name
+                                    : `Truck ${id}`}
                             </option>
                         ))}
                     </select>

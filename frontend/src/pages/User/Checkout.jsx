@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
+import { getSession } from '../../session.js'
 import './Checkout.css'
 
 const PACKING_FEE = 20
@@ -23,15 +24,22 @@ export default function Checkout() {
 
   const slots = useMemo(buildSlots, [])
 
-  const [name, setName]       = useState(localStorage.getItem('bnw_name')    ?? '')
-  const [phone, setPhone]     = useState('')
-  const [address, setAddress] = useState('')
+  const [name, setName]       = useState(getSession('bnw_name'))
+  // Phone comes from the profile captured at registration; the users table
+  // has no address column, so the last one used is remembered locally instead.
+  const [phone, setPhone]     = useState(getSession('bnw_phone'))
+  const [address, setAddress] = useState(localStorage.getItem('bnw_last_address') ?? '')
 
   const [when, setWhen]       = useState('now')
   const [slot, setSlot]       = useState(slots[0]?.value ?? '')
   const [payment, setPayment] = useState('cod')
   const [note, setNote]       = useState('')
   const [errors, setErrors]   = useState({})
+
+  // Validation only runs on submit, so without this an error message stays
+  // pinned under a field the user has since corrected.
+  const clearError = (field) =>
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev))
   const [placing, setPlacing] = useState(false)
   const [apiError, setApiError] = useState('')
 
@@ -81,6 +89,7 @@ export default function Checkout() {
         payment,
         note: note.trim(),
       })
+      try { localStorage.setItem('bnw_last_address', address.trim()) } catch { /* storage blocked */ }
       navigate(`/user/order/${orderId}`)
     } catch (err) {
       setApiError(err.message || 'Failed to place order. Please try again.')
@@ -111,7 +120,7 @@ export default function Checkout() {
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => { setName(e.target.value); clearError('name') }}
                 aria-invalid={!!errors.name}
               />
               {errors.name && <small className="co-error">{errors.name}</small>}
@@ -123,7 +132,7 @@ export default function Checkout() {
                 type="tel"
                 inputMode="numeric"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => { setPhone(e.target.value); clearError('phone') }}
                 aria-invalid={!!errors.phone}
               />
               {errors.phone && <small className="co-error">{errors.phone}</small>}
@@ -134,7 +143,7 @@ export default function Checkout() {
               <textarea
                 rows={2}
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(e) => { setAddress(e.target.value); clearError('address') }}
                 aria-invalid={!!errors.address}
               />
               {errors.address && <small className="co-error">{errors.address}</small>}

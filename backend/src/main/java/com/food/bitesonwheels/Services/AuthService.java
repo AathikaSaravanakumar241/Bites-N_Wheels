@@ -66,6 +66,7 @@ public class AuthService {
                 .userId(user.getUserId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .phone(user.getPhone())
                 .role(user.getRole())
                 .message("Registration successful")
                 .build();
@@ -91,6 +92,7 @@ public class AuthService {
                 .userId(user.getUserId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .phone(user.getPhone())
                 .role(user.getRole())
                 .message("Login successful")
                 .build();

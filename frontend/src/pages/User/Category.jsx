@@ -1,129 +1,98 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
-import { get } from '../../api.js'
+import { useArea } from './useArea.js'
+import { iconFor } from './catalog.js'
+import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
 import './Category.css'
 
-const CATEGORIES = [
-  { id: 'pizza',    label: 'Pizza',     icon: '🍕' },
-  { id: 'waffles',  label: 'Waffles',   icon: '🧇' },
-  { id: 'burger',   label: 'Burger',    icon: '🍔' },
-  { id: 'tacos',    label: 'Tacos',     icon: '🌮' },
-  { id: 'biryani',  label: 'Biryani',   icon: '🍛' },
-  { id: 'noodles',  label: 'Noodles',   icon: '🍜' },
-  { id: 'rolls',    label: 'Rolls',     icon: '🌯' },
-  { id: 'coffee',   label: 'Coffee',    icon: '☕' },
-  { id: 'desserts', label: 'Desserts',  icon: '🍩' },
-  { id: 'icecream', label: 'Ice Cream', icon: '🍦' },
-]
-
+/**
+ * One category (Pizza, South Indian, ...) within the selected area.
+ * Left: trucks bringing that category here today, soonest first.
+ * Right: the dishes themselves - click one to see every truck selling it.
+ */
 export default function CategoryPage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
-  const [selectedTruckId, setSelectedTruckId] = useState(null)
+  const { area } = useArea()
+  const { count } = useCart()
+
   const [trucks, setTrucks] = useState([])
+  const [items, setItems] = useState([])
+  const [categories, setCategories] = useState([])
+  const [selectedTruckId, setSelectedTruckId] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const { addItem, startNewCart, removeItem, qtyOf, count } = useCart()
-
-  const category = CATEGORIES.find((c) => c.id === categoryId)
-
   useEffect(() => {
-    get('/api/v1/trucks', false)
-      .then((data) => {
-        if (!Array.isArray(data)) return setTrucks([])
-        const withMenus = data.map((t) => ({
-          id:      t.truckId,
-          name:    t.name,
-          tagline: t.tagline ?? '',
-          etaMin:  20,
-          distanceKm: 1.0,
-          rating:  4.5,
-          items:   [],
-        }))
-        setTrucks(withMenus)
-        withMenus.forEach((truck) => {
-          get(`/api/v1/trucks/${truck.id}/menu`, false)
-            .then((items) => {
-              if (!Array.isArray(items)) return
-              const mapped = items.map((i) => ({
-                id:       i.itemId,
-                name:     i.name,
-                price:    Number(i.price),
-                category: (i.categoryTag ?? '').toLowerCase(),
-                veg:      i.foodType === 'VEG',
-                desc:     i.description ?? '',
-              }))
-              setTrucks((prev) =>
-                prev.map((tr) => tr.id === truck.id ? { ...tr, items: mapped } : tr)
-              )
-            })
-            .catch(() => {})
-        })
+    if (!area) { setLoading(false); return }
+    setLoading(true)
+    fetchAreaCatalog(area.id)
+      .then(({ trucks, items, categories }) => {
+        setTrucks(trucks); setItems(items); setCategories(categories)
       })
-      .catch(() => setTrucks([]))
+      .catch(() => { setTrucks([]); setItems([]); setCategories([]) })
       .finally(() => setLoading(false))
-  }, [])
+  }, [area])
 
+  const category = categories.find((c) => c.id === categoryId)
+    ?? { id: categoryId, label: categoryId, icon: iconFor(categoryId) }
+
+  // Trucks bringing this category to the area, soonest arrival first.
   const trucksWithCategory = useMemo(() => {
     return trucks
-      .filter((t) => t.items.some((i) => i.category === categoryId))
+      .filter((t) => t.items.some((i) => i.category === categoryId && i.available))
       .map((t) => ({
         ...t,
-        matchCount: t.items.filter((i) => i.category === categoryId).length,
+        matchCount: t.items.filter((i) => i.category === categoryId && i.available).length,
       }))
-      .sort((a, b) => a.etaMin - b.etaMin)
+      .sort((a, b) => String(a.arrivalTime ?? '').localeCompare(String(b.arrivalTime ?? '')))
   }, [trucks, categoryId])
 
   const selectedTruck = trucksWithCategory.find((t) => t.id === selectedTruckId) || null
 
   const dishes = useMemo(() => {
-    const source = selectedTruck ? [selectedTruck] : trucksWithCategory
-    return source.flatMap((truck) =>
-      truck.items
-        .filter((i) => i.category === categoryId)
-        .map((i) => ({ ...i, truckName: truck.name, truckId: truck.id, etaMin: truck.etaMin }))
+    const pool = selectedTruck
+      ? selectedTruck.items
+      : items.filter((i) => trucksWithCategory.some((t) => t.id === i.truckId))
+    return groupByDish(pool.filter((i) => i.category === categoryId && i.available))
+  }, [selectedTruck, items, trucksWithCategory, categoryId])
+
+  const otherDishes = useMemo(() => {
+    if (!selectedTruck) return []
+    return groupByDish(
+      selectedTruck.items.filter((i) => i.category !== categoryId && i.available),
     )
-  }, [selectedTruck, trucksWithCategory, categoryId])
+  }, [selectedTruck, categoryId])
 
-  const otherItems = selectedTruck
-    ? selectedTruck.items.filter((i) => i.category !== categoryId)
-    : []
-
-  function handleAdd(truckId, itemId) {
-    addItem(truckId, itemId).then((result) => {
-      if (result?.conflict) {
-        const truckName = result.currentTruck?.name ?? 'another truck'
-        const ok = window.confirm(
-          `Your cart already has food from ${truckName}.\n\nStart a new cart?`
-        )
-        if (ok) startNewCart(truckId, itemId)
-      }
-    }).catch(() => {})
-  }
-
-  if (!category) {
+  if (!area) {
     return (
       <div className="cp">
-        <div className="cp-bar">
-          <Link to="/user" className="cp-back">← Back</Link>
-        </div>
-        <p className="cp-empty">That category doesn't exist.</p>
+        <div className="cp-bar"><div className="cp-bar-inner">
+          <Link to="/user" className="cp-back">← Home</Link>
+        </div></div>
+        <p className="cp-empty">Pick your area first.</p>
       </div>
     )
   }
 
-  function renderControls(item, truckId) {
-    const qty = qtyOf(item.id)
-    return qty ? (
-      <div className="cp-stepper">
-        <button type="button" onClick={() => removeItem(item.id)} aria-label="Remove one">−</button>
-        <span>{qty}</span>
-        <button type="button" onClick={() => handleAdd(truckId, item.id)} aria-label="Add one">+</button>
-      </div>
-    ) : (
-      <button type="button" className="cp-add" onClick={() => handleAdd(truckId, item.id)}>
-        Add
+  function DishCard({ dish }) {
+    return (
+      <button
+        type="button"
+        className="cp-dish cp-dish-btn"
+        onClick={() => navigate(`/user/food/${encodeURIComponent(dish.name)}`)}
+      >
+        <span className="cp-dish-head">
+          <span className={dish.veg ? 'cp-veg' : 'cp-veg is-nonveg'} aria-hidden="true" />
+          <span className="cp-dish-name">{dish.name}</span>
+        </span>
+        <span className="cp-dish-desc">{dish.desc}</span>
+        <span className="cp-dish-foot">
+          <span className="cp-price">from ₹{dish.minPrice}</span>
+          <span className="cp-dish-trucks">
+            {dish.truckCount} truck{dish.truckCount === 1 ? '' : 's'}
+          </span>
+        </span>
       </button>
     )
   }
@@ -138,11 +107,12 @@ export default function CategoryPage() {
             {category.label}
           </h1>
           <span className="cp-sub">
-            {trucksWithCategory.length} truck{trucksWithCategory.length === 1 ? '' : 's'} serving now
+            in {area.name} · {trucksWithCategory.length} truck
+            {trucksWithCategory.length === 1 ? '' : 's'}
           </span>
           {count > 0 && (
             <button type="button" className="cp-cart" onClick={() => navigate('/user/cart')}>
-              🛒 {count} item{count === 1 ? '' : 's'} · View cart
+              🛒 {count} · View cart
             </button>
           )}
         </div>
@@ -150,7 +120,7 @@ export default function CategoryPage() {
 
       <div className="cp-main">
         <aside className="cp-trucks">
-          <h2 className="cp-side-title">Fastest to reach you</h2>
+          <h2 className="cp-side-title">Arriving in {area.name}</h2>
 
           <button
             type="button"
@@ -159,28 +129,30 @@ export default function CategoryPage() {
           >
             <span className="cp-truck-name">All trucks</span>
             <span className="cp-truck-tagline">
-              Show every {category.label.toLowerCase()} nearby
+              Every {category.label.toLowerCase()} coming here today
             </span>
           </button>
 
           {loading ? (
-            <p style={{ padding: '8px', fontSize: 13 }}>Loading trucks…</p>
+            <p className="cp-side-note">Loading trucks…</p>
+          ) : trucksWithCategory.length === 0 ? (
+            <p className="cp-side-note">No truck brings this here today.</p>
           ) : (
             trucksWithCategory.map((truck, index) => (
               <button
-                key={truck.id}
+                key={truck.scheduleId ?? truck.id}
                 type="button"
                 className={selectedTruckId === truck.id ? 'cp-truck is-active' : 'cp-truck'}
                 onClick={() => setSelectedTruckId(selectedTruckId === truck.id ? null : truck.id)}
               >
                 <span className="cp-truck-head">
                   <span className="cp-truck-name">{truck.name}</span>
-                  {index === 0 && <span className="cp-fastest">Fastest</span>}
+                  {index === 0 && <span className="cp-fastest">First</span>}
                 </span>
                 <span className="cp-truck-tagline">{truck.tagline}</span>
                 <span className="cp-truck-meta">
-                  <span className="cp-eta">{truck.etaMin} min</span>
-                  <span>· ★ {truck.rating}</span>
+                  <span className="cp-eta">{formatTime(truck.arrivalTime)}</span>
+                  <span>– {formatTime(truck.departureTime)}</span>
                   <span>· {truck.matchCount} option{truck.matchCount === 1 ? '' : 's'}</span>
                 </span>
               </button>
@@ -192,67 +164,40 @@ export default function CategoryPage() {
           <h2 className="cp-section-title">
             {selectedTruck
               ? `${category.label} at ${selectedTruck.name}`
-              : `All ${category.label.toLowerCase()} near you`}
+              : `${category.label} in ${area.name}`}
             <span className="cp-count">{dishes.length}</span>
           </h2>
 
           {selectedTruck && (
             <p className="cp-note">
-              Showing only what {selectedTruck.name} makes.{' '}
+              Arrives {formatTime(selectedTruck.arrivalTime)}, leaves{' '}
+              {formatTime(selectedTruck.departureTime)}.{' '}
               <button type="button" className="cp-link" onClick={() => setSelectedTruckId(null)}>
                 Show every truck
               </button>
             </p>
           )}
 
-          {dishes.length === 0 ? (
-            <p className="cp-empty">No {category.label.toLowerCase()} available right now.</p>
+          {loading ? (
+            <p className="cp-empty">Loading…</p>
+          ) : dishes.length === 0 ? (
+            <p className="cp-empty">
+              No {category.label.toLowerCase()} coming to {area.name} today.
+            </p>
           ) : (
             <div className="cp-dishes">
-              {dishes.map((dish) => (
-                <article key={`${dish.truckId}-${dish.id}`} className="cp-dish">
-                  <div className="cp-dish-head">
-                    <span className={dish.veg ? 'cp-veg' : 'cp-veg is-nonveg'} aria-hidden="true" />
-                    <h3>{dish.name}</h3>
-                  </div>
-                  <p className="cp-dish-desc">{dish.desc}</p>
-                  {!selectedTruck && (
-                    <p className="cp-dish-truck">
-                      {dish.truckName} · {dish.etaMin} min
-                    </p>
-                  )}
-                  <div className="cp-dish-foot">
-                    <span className="cp-price">₹{dish.price}</span>
-                    {renderControls(dish, dish.truckId)}
-                  </div>
-                </article>
-              ))}
+              {dishes.map((dish) => <DishCard key={dish.key} dish={dish} />)}
             </div>
           )}
 
-          {selectedTruck && otherItems.length > 0 && (
+          {selectedTruck && otherDishes.length > 0 && (
             <section className="cp-more">
               <h2 className="cp-section-title">
                 Also from {selectedTruck.name}
-                <span className="cp-count">{otherItems.length}</span>
+                <span className="cp-count">{otherDishes.length}</span>
               </h2>
               <div className="cp-dishes">
-                {otherItems.map((item) => (
-                  <article key={item.id} className="cp-dish">
-                    <div className="cp-dish-head">
-                      <span className={item.veg ? 'cp-veg' : 'cp-veg is-nonveg'} aria-hidden="true" />
-                      <h3>{item.name}</h3>
-                    </div>
-                    <p className="cp-dish-desc">{item.desc}</p>
-                    <p className="cp-dish-truck">
-                      {CATEGORIES.find((c) => c.id === item.category)?.label}
-                    </p>
-                    <div className="cp-dish-foot">
-                      <span className="cp-price">₹{item.price}</span>
-                      {renderControls(item, selectedTruck.id)}
-                    </div>
-                  </article>
-                ))}
+                {otherDishes.map((dish) => <DishCard key={dish.key} dish={dish} />)}
               </div>
             </section>
           )}
