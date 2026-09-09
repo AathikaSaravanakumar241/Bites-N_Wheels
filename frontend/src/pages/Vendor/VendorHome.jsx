@@ -4,15 +4,15 @@ import VendorLayout from './VendorLayout.jsx'
 import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorHome.css'
 
-import { get as apiGet } from '../../api.js'
+import { get as apiGet, describeError } from '../../api.js'
 const ORDERS_URL = '/api/v1/truck/orders'
 
 const OPEN_STATUSES = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
 
-function customerName(user) {
-  if (!user) return 'Guest'
-  if (typeof user === 'string') return user
-  return user.name || user.username || user.email || 'Guest'
+// The orders API sends customerName directly; order.user is @JsonIgnore'd on
+// the entity and was always undefined, so every order read as "Guest".
+function customerName(order) {
+  return order?.customerName || 'Walk-in'
 }
 
 function itemSummary(items) {
@@ -51,13 +51,7 @@ export default function VendorHome() {
 
     apiGet(ORDERS_URL)
       .then((data) => setOrders(Array.isArray(data) ? data : []))
-      .catch((err) => {
-        if (err.status === 401 || err.status === 403) {
-          setError('Session expired. Please log in again.')
-        } else {
-          setError('Unable to load orders. Check that the backend is running on port 8080.')
-        }
-      })
+      .catch((err) => setError(describeError(err, 'Unable to load orders.')))
       .finally(() => setLoading(false))
   }, [])
 
@@ -145,7 +139,7 @@ export default function VendorHome() {
                 <li key={order.orderId} className="vh-order">
                   <div className="vh-order-main">
                     <span className="vh-order-id">#{order.orderId}</span>
-                    <span className="vh-order-customer">{customerName(order.user)}</span>
+                    <span className="vh-order-customer">{customerName(order)}</span>
                     <span className="vh-order-items">{itemSummary(order.items)}</span>
                   </div>
                   <div className="vh-order-side">

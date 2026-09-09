@@ -2,13 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import truck from "../assets/New_img.png";
 import { post, saveToken } from "../api.js";
+import { setSession } from "../session.js";
 
 function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError]       = useState("");
+  // api.js redirects here with ?expired=1 when a token is rejected, so the
+  // user is told why they are back at the login form.
+  const [error, setError]       = useState(
+    new URLSearchParams(window.location.search).has("expired")
+      ? "Your session expired. Please sign in again."
+      : ""
+  );
   const [loading, setLoading]   = useState(false);
 
   async function handleLogin(e) {
@@ -20,10 +27,11 @@ function Login() {
       const data = await post("/api/auth/login", { email, password }, false);
 
       saveToken(data.token);
-      localStorage.setItem("bnw_role",   data.role);
-      localStorage.setItem("bnw_userId", data.userId);
-      localStorage.setItem("bnw_name",   data.name);
-      localStorage.setItem("bnw_email",  data.email);
+      setSession("bnw_role",   data.role);
+      setSession("bnw_userId", String(data.userId));
+      setSession("bnw_name",   data.name);
+      setSession("bnw_email",  data.email);
+      setSession("bnw_phone",  data.phone ?? "");
 
       navigate(data.role === "TRUCK_OWNER" ? "/vendor" : "/user");
     } catch (err) {

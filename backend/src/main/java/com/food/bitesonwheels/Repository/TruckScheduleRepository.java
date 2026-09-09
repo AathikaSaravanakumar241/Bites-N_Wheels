@@ -2,6 +2,8 @@ package com.food.bitesonwheels.Repository;
 
 import com.food.bitesonwheels.models.TruckSchedule;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
@@ -12,4 +14,20 @@ public interface TruckScheduleRepository extends JpaRepository<TruckSchedule, Lo
     List<TruckSchedule> findByTruckTruckIdAndServiceDate(Long truckId,LocalDate date);
 
     List<TruckSchedule> findByTruckTruckId(Long Id);
+
+    /**
+     * Reverse of findByTruckTruckIdAndServiceDate: every truck visiting a
+     * given area on a given date. Drives the customer's area home page.
+     * Truck is fetch-joined because the caller always reads truck fields
+     * and the session is closed before serialisation (open-in-view=false).
+     */
+    @Query("""
+           select s from TruckSchedule s
+           join fetch s.truck t
+           where s.station.stationId = :stationId
+             and s.serviceDate = :date
+           order by s.arrivalTime asc
+           """)
+    List<TruckSchedule> findByStationAndDate(@Param("stationId") Long stationId,
+                                             @Param("date") LocalDate date);
 }

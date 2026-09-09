@@ -16,6 +16,7 @@ import './VendorLayout.css'
 
 const NAV = [
   { to: '/vendor',         label: 'Dashboard', icon: '▤', end: true },
+  { to: '/vendor/journey', label: 'Journey',   icon: '🗺' },
   { to: '/vendor/orders',  label: 'Orders',    icon: '🧾' },
   { to: '/vendor/menu',    label: 'Menu',      icon: '🍽' },
   { to: '/vendor/billing', label: 'Billing',   icon: '💵' },
@@ -58,7 +59,10 @@ export default function VendorLayout({ title, subtitle, actions, children }) {
         <button
           type="button"
           className={isOpen ? 'vl-toggle is-open' : 'vl-toggle'}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            // Now a network call; a rejection here would otherwise be silent.
+            Promise.resolve(setIsOpen(!isOpen)).catch(() => {})
+          }}
           aria-pressed={isOpen}
         >
           {isOpen ? 'Stop taking orders' : 'Start taking orders'}

@@ -1,6 +1,8 @@
 package com.food.bitesonwheels.Controllers;
 import com.food.bitesonwheels.Services.TruckService;
+import com.food.bitesonwheels.dto.VendorOrderDTO;
 import com.food.bitesonwheels.models.MenuItem;
+import com.food.bitesonwheels.models.Truck;
 import com.food.bitesonwheels.models.Orders;
 import com.food.bitesonwheels.models.TruckSchedule;
 import com.food.bitesonwheels.models.enums.FoodType;
@@ -21,15 +23,58 @@ import java.util.Map;
 public class TruckController {
     private final TruckService truckService;
 
+    /** The signed-in owner's truck. */
+    @GetMapping("/me")
+    public ResponseEntity<Truck> getMyTruck() {
+        return ResponseEntity.ok(truckService.getMyTruck());
+    }
+
+    /** Update the signed-in owner's truck profile (partial patch). */
+    @PutMapping("/me")
+    public ResponseEntity<Truck> updateMyTruck(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(truckService.updateMyTruck(body));
+    }
+
+    /** The "taking orders" switch. Body: {"open": true|false} */
+    @PatchMapping("/me/status")
+    public ResponseEntity<Truck> setOpen(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(
+                truckService.setOpen(Boolean.parseBoolean(String.valueOf(body.get("open")))));
+    }
+
+
+    // ---- request-body readers -------------------------------------------
+    // The menu form sends `null` for fields the owner left blank (notably
+    // stockQuantity), so reading them with .toString() threw a 500. These
+    // keep a blank optional field blank and give a clear 400-style message
+    // for a genuinely missing required one.
+
+    private static String reqStr(Map<String, Object> body, String key) {
+        Object v = body.get(key);
+        if (v == null || String.valueOf(v).isBlank())
+            throw new IllegalArgumentException(key + " is required");
+        return String.valueOf(v).trim();
+    }
+
+    private static int intOr(Map<String, Object> body, String key, int fallback) {
+        Object v = body.get(key);
+        if (v == null || String.valueOf(v).isBlank()) return fallback;
+        try {
+            return (int) Double.parseDouble(String.valueOf(v));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(key + " must be a number");
+        }
+    }
+
     @PostMapping("/menu-items")
     public ResponseEntity<MenuItem> createMenuItem(@RequestBody Map<String,Object> body){
          return ResponseEntity.ok(truckService.createMenuItem(
-                body.get("name").toString(),
-                new BigDecimal(body.get("price").toString()),
-                body.get("description").toString(),
-                FoodType.valueOf(body.get("foodType").toString()),
-                Integer.parseInt(body.get("stockQuantity").toString()),
-                body.get("categoryTag").toString()
+                reqStr(body, "name"),
+                new BigDecimal(reqStr(body, "price")),
+                reqStr(body, "description"),
+                FoodType.valueOf(reqStr(body, "foodType")),
+                intOr(body, "stockQuantity", 0),
+                reqStr(body, "categoryTag")
         ));
     }
 
@@ -40,12 +85,12 @@ public class TruckController {
 
             return ResponseEntity.ok(truckService.updateMenuItem(
                 itemId,
-                body.get("name").toString(),
-                new BigDecimal(body.get("price").toString()),
-                body.get("description").toString(),
-                FoodType.valueOf(body.get("foodType").toString()),
-                Integer.parseInt(body.get("stockQuantity").toString()),
-                body.get("categoryTag").toString()
+                reqStr(body, "name"),
+                new BigDecimal(reqStr(body, "price")),
+                reqStr(body, "description"),
+                FoodType.valueOf(reqStr(body, "foodType")),
+                intOr(body, "stockQuantity", 0),
+                reqStr(body, "categoryTag")
         ));
 
     }
@@ -85,13 +130,13 @@ public class TruckController {
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<List<Orders>> getOrders(
+    public ResponseEntity<List<VendorOrderDTO>> getOrders(
             @RequestParam(required = false) OrderType type) {
         return ResponseEntity.ok(truckService.getOrders(type));
     }
 
     @PatchMapping("/orders/{orderId}/status")
-    public ResponseEntity<Orders> updateOrderStatus(
+    public ResponseEntity<VendorOrderDTO> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(truckService.updateOrderStatus(
