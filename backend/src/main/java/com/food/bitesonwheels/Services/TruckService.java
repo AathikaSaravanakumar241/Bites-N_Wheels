@@ -240,14 +240,20 @@ public class TruckService {
     public Orders createOfflineOrder(Long stationId, BigDecimal totalAmount,
                                      List<Map<String, Object>> items) {
         Truck truck = getCurrentTruck();
-        Station station = stationRepository.findById(stationId)
-                .orElseThrow(() -> new RuntimeException("Station not found"));
-        List<TruckSchedule> schedules =
-                scheduleRepository.findByTruckTruckIdAndServiceDate(
-                        truck.getTruckId(), LocalDate.now());
-        TruckSchedule schedule = schedules.stream()
-                .filter(s -> s.getStation().getStationId().equals(stationId))
-                .findFirst().orElse(null);
+
+        // A walk-in sale has no station until a journey has been published,
+        // so stationId is optional. When one is supplied we attach today's
+        // schedule row for that stop; otherwise the sale simply has none.
+        TruckSchedule schedule = null;
+        if (stationId != null) {
+            stationRepository.findById(stationId)
+                    .orElseThrow(() -> new RuntimeException("Station not found " + stationId));
+            schedule = scheduleRepository
+                    .findByTruckTruckIdAndServiceDate(truck.getTruckId(), LocalDate.now())
+                    .stream()
+                    .filter(s -> s.getStation().getStationId().equals(stationId))
+                    .findFirst().orElse(null);
+        }
         Orders order = Orders.builder()
                 .truck(truck)
                 .schedule(schedule)

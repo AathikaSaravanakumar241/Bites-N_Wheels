@@ -161,10 +161,11 @@ function TruckBilling() {
         const body = {
             stationId:     null,
             totalAmount:   getTotal(),
+            // the backend reads "price" here, not "priceAtOrder"
             items: billItems.map((item) => ({
-                itemId:       item.itemId,
-                quantity:     item.quantity,
-                priceAtOrder: item.price,
+                itemId:   item.itemId,
+                quantity: item.quantity,
+                price:    item.price,
             })),
         };
 
@@ -173,8 +174,10 @@ function TruckBilling() {
                 setMessage("Bill generated and order saved successfully.");
                 setTimeout(() => { clearBill(); }, 1500);
             })
-            .catch(() => {
-                setError("Failed to save the order. Please try again.");
+            .catch((err) => {
+                // surface what the backend actually said - a swallowed error
+                // here is why this failure looked like "nothing happens"
+                setError(describeError(err, "Failed to save the order."));
             });
     }
 

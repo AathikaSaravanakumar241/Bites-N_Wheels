@@ -153,8 +153,15 @@ public class TruckController {
 
     @PostMapping("/offline-orders")
     public ResponseEntity<Orders> createOfflineOrder(@RequestBody Map<String, Object> body) {
+        // stationId is optional for a walk-in sale - calling toString() on a
+        // missing value is what used to blow up every bill with an NPE.
+        Object rawStation = body.get("stationId");
+        Long stationId = (rawStation == null || rawStation.toString().isBlank())
+                ? null
+                : Long.valueOf(rawStation.toString());
+
         return ResponseEntity.ok(truckService.createOfflineOrder(
-                Long.valueOf(body.get("stationId").toString()),
+                stationId,
                 new BigDecimal(body.get("totalAmount").toString()),
                 (List<Map<String, Object>>) body.get("items")
         ));
