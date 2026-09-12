@@ -21,23 +21,11 @@ public class AuthService {
     private final TruckRepository truckRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
-
-    // REGISTER
-    public AuthResponse register(RegisterRequest request) {
-
-        // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
+    private final AuthenticationManager authenticationManager;    public AuthResponse register(RegisterRequest request) {        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
-        }
-
-        // Check if phone already exists
-        if (userRepository.existsByPhone(request.getPhone())) {
+        }        if (userRepository.existsByPhone(request.getPhone())) {
             throw new RuntimeException("Phone number already registered");
-        }
-
-        // Save the new user (password is hashed before saving)
-        User user = User.builder()
+        }        User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
@@ -45,10 +33,7 @@ public class AuthService {
                 .role(request.getRole())
                 .build();
 
-        user = userRepository.save(user);
-
-        // Auto-create a default Truck if registered as TRUCK_OWNER
-        if (request.getRole() == Role.TRUCK_OWNER) {
+        user = userRepository.save(user);        if (request.getRole() == Role.TRUCK_OWNER) {
             Truck defaultTruck = Truck.builder()
                     .owner(user)
                     .name(request.getName() + "'s Food Truck")
@@ -56,10 +41,7 @@ public class AuthService {
                     .status(TruckStatus.ACTIVE)
                     .build();
             truckRepository.save(defaultTruck);
-        }
-
-        // Generate JWT token and return
-        String token = jwtUtil.generateToken(user);
+        }        String token = jwtUtil.generateToken(user);
 
         return AuthResponse.builder()
                 .token(token)
@@ -70,22 +52,10 @@ public class AuthService {
                 .role(user.getRole())
                 .message("Registration successful")
                 .build();
-    }
-
-    // LOGIN
-    public AuthResponse login(LoginRequest request) {
-
-        // This checks email + password — throws exception if wrong
-        authenticationManager.authenticate(
+    }    public AuthResponse login(LoginRequest request) {        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
-
-        // If we get here, credentials are correct — load user from DB
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Generate JWT token and return
-        String token = jwtUtil.generateToken(user);
+        );        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));        String token = jwtUtil.generateToken(user);
 
         return AuthResponse.builder()
                 .token(token)

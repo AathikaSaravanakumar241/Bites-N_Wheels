@@ -28,10 +28,7 @@ export default function UserHome() {
   const [query, setQuery] = useState('')
   const [activeCategories, setActiveCategories] = useState([])
   const [vegOnly, setVegOnly] = useState(false)
-  const [promoIndex, setPromoIndex] = useState(0)
-
-  // Everything below is scoped to the chosen area.
-  useEffect(() => {
+  const [promoIndex, setPromoIndex] = useState(0)  useEffect(() => {
     if (!area) return
     setLoading(true)
     setError('')
@@ -60,10 +57,7 @@ export default function UserHome() {
   function clearFilters() {
     setActiveCategories([])
     setVegOnly(false)
-  }
-
-  // One card per dish, even when several trucks bring it.
-  const dishes = useMemo(() => {
+  }  const dishes = useMemo(() => {
     const filtered = items.filter((i) => {
       if (!i.available) return false
       if (activeCategories.length && !activeCategories.includes(i.category)) return false
@@ -78,10 +72,7 @@ export default function UserHome() {
   }, [items, activeCategories, vegOnly, query])
 
   const promo = PROMOS[promoIndex]
-  const filterCount = activeCategories.length + (vegOnly ? 1 : 0)
-
-  // No area chosen yet - nothing else can be shown.
-  if (!area) return <AreaPicker />
+  const filterCount = activeCategories.length + (vegOnly ? 1 : 0)  if (!area) return <AreaPicker />
 
   return (
     <div className="uh">

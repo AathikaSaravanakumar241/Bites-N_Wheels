@@ -1,8 +1,6 @@
-/* Uses only tokens from index.css. */
 
 .co { min-height: 100vh; background: var(--surface); }
 
-/* ---------------- TOP BAR ---------------- */
 
 .co-bar {
   position: sticky;
@@ -33,7 +31,6 @@
 
 .co-title { margin: 0; font-size: 22px; }
 
-/* ---------------- LAYOUT ---------------- */
 
 .co-main {
   max-width: 1040px;
@@ -56,7 +53,6 @@
 
 .co-panel-title { margin: 0 0 var(--space-3); font-size: 17px; }
 
-/* ---------------- FIELDS ---------------- */
 
 .co-field { display: block; margin-bottom: var(--space-3); }
 
@@ -100,7 +96,6 @@
 
 .co-field-note { margin-top: var(--space-3); margin-bottom: 0; }
 
-/* ---------------- RADIO OPTIONS ---------------- */
 
 .co-option {
   display: flex;
@@ -135,7 +130,6 @@
 
 .co-option-sub { color: var(--text-muted); font-size: 13px; }
 
-/* ---------------- TIME SLOTS ---------------- */
 
 .co-slots {
   display: flex;
@@ -164,7 +158,6 @@
   color: #fff;
 }
 
-/* ---------------- SUMMARY ---------------- */
 
 .co-summary { position: sticky; top: 84px; }
 
@@ -254,7 +247,6 @@
 
 .co-cta:disabled { opacity: 0.6; cursor: default; }
 
-/* ---------------- EMPTY ---------------- */
 
 .co-empty-wrap {
   max-width: 1040px;
@@ -277,7 +269,6 @@
   font-weight: 600;
 }
 
-/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 860px) {
   .co-main { grid-template-columns: 1fr; }

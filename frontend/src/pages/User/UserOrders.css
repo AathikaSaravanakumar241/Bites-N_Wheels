@@ -1,8 +1,6 @@
-/* Uses only tokens from index.css. */
 
 .uo { min-height: 100vh; background: var(--bg); }
 
-/* ---------------- TOP BAR ---------------- */
 
 .uo-bar {
   position: sticky;
@@ -33,7 +31,6 @@
 
 .uo-title { margin: 0; font-size: 22px; }
 
-/* ---------------- LAYOUT ---------------- */
 
 .uo-main {
   max-width: 900px;
@@ -65,7 +62,6 @@
 
 .uo-cta:hover { background: var(--brand-hover); }
 
-/* ---------------- ORDER CARDS ---------------- */
 
 .uo-list {
   list-style: none;
@@ -117,7 +113,6 @@
 .uo-status[data-status="REJECTED"],
 .uo-status[data-status="CANCELLED"] { color: var(--danger); }
 
-/* ---------------- ITEM LINES ---------------- */
 
 .uo-items {
   list-style: none;
@@ -139,7 +134,6 @@
 
 .uo-item-price { color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
-/* ---------------- FOOTER ---------------- */
 
 .uo-card-foot {
   display: flex;

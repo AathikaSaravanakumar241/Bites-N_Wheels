@@ -24,21 +24,14 @@ export default function Checkout() {
 
   const slots = useMemo(buildSlots, [])
 
-  const [name, setName]       = useState(getSession('bnw_name'))
-  // Phone comes from the profile captured at registration; the users table
-  // has no address column, so the last one used is remembered locally instead.
-  const [phone, setPhone]     = useState(getSession('bnw_phone'))
+  const [name, setName]       = useState(getSession('bnw_name'))  const [phone, setPhone]     = useState(getSession('bnw_phone'))
   const [address, setAddress] = useState(localStorage.getItem('bnw_last_address') ?? '')
 
   const [when, setWhen]       = useState('now')
   const [slot, setSlot]       = useState(slots[0]?.value ?? '')
   const [payment, setPayment] = useState('cod')
   const [note, setNote]       = useState('')
-  const [errors, setErrors]   = useState({})
-
-  // Validation only runs on submit, so without this an error message stays
-  // pinned under a field the user has since corrected.
-  const clearError = (field) =>
+  const [errors, setErrors]   = useState({})  const clearError = (field) =>
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev))
   const [placing, setPlacing] = useState(false)
   const [apiError, setApiError] = useState('')

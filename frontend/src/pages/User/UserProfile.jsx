@@ -3,11 +3,6 @@ import { clearToken } from '../../api.js'
 import { getSession } from '../../session.js'
 import './UserProfile.css'
 
-/* Customer account page, opened from the profile icon in the header.
-
-   Reads the details captured at login (see Login.jsx). There is no customer
-   profile endpoint yet - `users` stores name, email and phone but the API
-   exposes them only on the auth response - so this is display-only. */
 
 const read = getSession
 
@@ -18,10 +13,7 @@ export default function UserProfile() {
   const email = read('bnw_email')
   const phone = read('bnw_phone')
 
-  function handleLogout() {
-    // clearToken() clears this tab's whole session (see session.js), so a
-    // truck owner signed in on another tab stays signed in.
-    clearToken()
+  function handleLogout() {    clearToken()
     navigate('/login')
   }
 

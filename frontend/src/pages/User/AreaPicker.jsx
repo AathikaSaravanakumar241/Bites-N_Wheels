@@ -3,12 +3,6 @@ import { fetchStations, useArea } from './useArea.js'
 import { describeError } from '../../api.js'
 import './AreaPicker.css'
 
-/**
- * Area chooser. Rendered as a full-screen panel when the customer has
- * not picked an area yet, and as a dismissable dialog when they are
- * changing it. Nothing else on the customer side works without this,
- * so it blocks the page until a choice is made.
- */
 export default function AreaPicker({ onClose }) {
   const { area, setArea } = useArea()
   const [stations, setStations] = useState([])

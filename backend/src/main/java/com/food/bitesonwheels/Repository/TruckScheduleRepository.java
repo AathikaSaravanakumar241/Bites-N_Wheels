@@ -15,12 +15,6 @@ public interface TruckScheduleRepository extends JpaRepository<TruckSchedule, Lo
 
     List<TruckSchedule> findByTruckTruckId(Long Id);
 
-    /**
-     * Reverse of findByTruckTruckIdAndServiceDate: every truck visiting a
-     * given area on a given date. Drives the customer's area home page.
-     * Truck is fetch-joined because the caller always reads truck fields
-     * and the session is closed before serialisation (open-in-view=false).
-     */
     @Query("""
            select s from TruckSchedule s
            join fetch s.truck t

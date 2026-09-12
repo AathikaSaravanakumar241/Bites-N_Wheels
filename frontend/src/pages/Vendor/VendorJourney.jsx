@@ -4,19 +4,6 @@ import VendorLayout from './VendorLayout.jsx'
 import { get, post, describeError } from '../../api.js'
 import './VendorJourney.css'
 
-/* ---------------------------------------------------------------
-   TODAY'S JOURNEY
-
-   Owner flow: pick the areas the truck will visit today, set an
-   arrival and departure time for each, then save.
-
-   POST /api/v1/truck/today-setup replaces the whole plan for today
-   (the service deletes existing rows for the date first), so this page
-   always submits the complete list, never a single stop.
-
-   The customer side reads exactly this: an area page lists the trucks
-   whose journey includes that area today.
-   --------------------------------------------------------------- */
 
 const SETUP_URL = '/api/v1/truck/today-setup'
 
@@ -95,10 +82,7 @@ export default function VendorJourney() {
       return next
     })
     setSaved('')
-  }
-
-  // Times must make sense or the journey is not publishable.
-  const problems = useMemo(() => {
+  }  const problems = useMemo(() => {
     const list = []
     stops.forEach((s, i) => {
       if (s.departureTime <= s.arrivalTime) {

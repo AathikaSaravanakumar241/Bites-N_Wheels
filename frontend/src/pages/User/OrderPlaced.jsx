@@ -4,13 +4,6 @@ import { get as apiGet } from '../../api.js'
 import { useCart } from './CartContext.jsx'
 import './OrderPlaced.css'
 
-/* Confirmation page.
-
-   The in-memory order from CartContext paints instantly but is thin: the
-   POST /orders response carries neither the truck name nor a `total`, and it
-   is gone entirely after a refresh. GET /api/v1/orders/{id} returns an
-   OrderSummaryDTO with truckName, totalAmount and named items, so fetch that
-   and let the local copy serve only as the first paint. */
 
 export default function OrderPlaced() {
   const { orderId } = useParams()

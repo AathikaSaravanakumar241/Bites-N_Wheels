@@ -6,11 +6,6 @@ import { iconFor } from './catalog.js'
 import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
 import './Category.css'
 
-/**
- * One category (Pizza, South Indian, ...) within the selected area.
- * Left: trucks bringing that category here today, soonest first.
- * Right: the dishes themselves - click one to see every truck selling it.
- */
 export default function CategoryPage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
@@ -35,10 +30,7 @@ export default function CategoryPage() {
   }, [area])
 
   const category = categories.find((c) => c.id === categoryId)
-    ?? { id: categoryId, label: categoryId, icon: iconFor(categoryId) }
-
-  // Trucks bringing this category to the area, soonest arrival first.
-  const trucksWithCategory = useMemo(() => {
+    ?? { id: categoryId, label: categoryId, icon: iconFor(categoryId) }  const trucksWithCategory = useMemo(() => {
     return trucks
       .filter((t) => t.items.some((i) => i.category === categoryId && i.available))
       .map((t) => ({

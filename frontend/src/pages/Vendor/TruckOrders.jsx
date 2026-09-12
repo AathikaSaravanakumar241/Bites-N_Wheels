@@ -61,11 +61,7 @@ function TruckOrders() {
         updateStatus(orderId, "COMPLETED");
     }
 
-    function getCustomerName(order) {
-        // The API now sends customerName directly. It used to read order.user,
-        // which is @JsonIgnore'd on the entity and so was always undefined -
-        // every order showed as "Guest".
-        return order.customerName || "Walk-in";
+    function getCustomerName(order) {        return order.customerName || "Walk-in";
     }
 
     function getFoodItems(order) {
@@ -73,9 +69,7 @@ function TruckOrders() {
             return "No food items";
         }
 
-        return order.items.map((item, index) => {
-            // Was item.item?.name - also @JsonIgnore'd, hence "Food Item".
-            const itemName = item.name || "Item";
+        return order.items.map((item, index) => {            const itemName = item.name || "Item";
             const quantity = item.quantity || 1;
 
             return (

@@ -5,13 +5,6 @@ import { useArea } from './useArea.js'
 import { fetchAreaCatalog, formatTime } from './areaCatalog.js'
 import './FoodTrucks.css'
 
-/**
- * "Which trucks are bringing Chicken Biryani to Tambaram today?"
- *
- * Lists every truck visiting the selected area that carries the chosen
- * dish, with price, arrival window and availability. Sorted by arrival
- * so the soonest food is first.
- */
 export default function FoodTrucks() {
   const { foodName } = useParams()
   const navigate = useNavigate()
@@ -31,10 +24,7 @@ export default function FoodTrucks() {
       .then(({ items }) => setItems(items))
       .catch(() => setError('Could not load trucks for this dish.'))
       .finally(() => setLoading(false))
-  }, [area])
-
-  // Every truck in this area selling this dish, soonest arrival first.
-  const options = useMemo(() => {
+  }, [area])  const options = useMemo(() => {
     const target = dish.toLowerCase()
     return items
       .filter((i) => i.name.toLowerCase() === target)
@@ -50,9 +40,7 @@ export default function FoodTrucks() {
           `Your cart already has food from ${name}.\n\nOne order comes from one truck. Start a new cart?`,
         )) startNewCart(truckId, itemId)
       }
-    }
-    // addItem is sync in the local cart, async once it posts to /cart.
-    if (result && typeof result.then === 'function') result.then(apply).catch(() => {})
+    }    if (result && typeof result.then === 'function') result.then(apply).catch(() => {})
     else apply(result)
   }
 

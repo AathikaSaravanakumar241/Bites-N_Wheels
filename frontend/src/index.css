@@ -1,30 +1,19 @@
-/* ---------------------------------------------------------------
-   BITES N WHEELS - shared design tokens
-   Everyone uses these. Never hardcode a hex value in a page or
-   component - always use var(--token). If you need a colour that
-   isn't here, add it HERE and tell the team, don't invent it
-   locally.
-   --------------------------------------------------------------- */
 
 :root {
-  /* Brand - taken from the logo */
   --brand: #e4502a;        /* the one brand colour: buttons, active states, accents */
   --brand-hover: #c8431f;  /* darker, for :hover on brand buttons */
   --brand-ink: #c2410c;    /* use when brand is TEXT on a light bg (see note below) */
   --brand-soft: #fdeee9;   /* faint tint for badges / selected rows */
 
-  /* Neutrals - the charcoal is from the logo badge */
   --bg: #ffffff;           /* page background */
   --surface: #f8f8f9;      /* cards, panels, inputs */
   --text: #262a33;         /* headings + body text */
   --text-muted: #6b7280;   /* secondary text, captions, placeholders */
   --border: #e5e7eb;       /* card borders, dividers, input outlines */
 
-  /* States */
   --success: #15803d;
   --danger: #b91c1c;
 
-  /* Shape + spacing */
   --radius: 10px;
   --radius-sm: 6px;
   --shadow: 0 1px 3px rgba(38, 42, 51, 0.08), 0 4px 12px rgba(38, 42, 51, 0.06);
@@ -35,12 +24,10 @@
   --space-4: 24px;
   --space-5: 40px;
 
-  /* Type */
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 }
 
-/* --- base ------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
@@ -80,7 +67,6 @@ a {
   color: var(--brand-ink);
 }
 
-/* --- shared button --------------------------------------------- */
 
 .btn {
   display: inline-flex;
@@ -109,9 +95,6 @@ a {
 .btn-secondary:hover {
   background: var(--surface);
 }
-/* ---------------------------------------------------------------
-   LOGIN PAGE
-   --------------------------------------------------------------- */
 
 .login-page {
   min-height: 100vh;
@@ -201,9 +184,6 @@ a {
   height: auto;
   display: block;
 }
-/* ---------------------------------------------------------------
-   TRUCK OWNER DASHBOARD STYLES
-   --------------------------------------------------------------- */
 
 .truck-dashboard-layout {
   display: flex;
@@ -270,7 +250,6 @@ a {
   margin-bottom: var(--space-4);
 }
 
-/* Panels and Cards */
 .card-panel {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -291,7 +270,6 @@ a {
   gap: var(--space-4);
 }
 
-/* Status Controls & Pills */
 .status-selector {
   display: flex;
   gap: var(--space-2);
@@ -313,7 +291,6 @@ a {
 .status-pill.breakdown { background: #fee2e2; color: var(--danger); }
 .status-pill.closed { background: var(--border); color: var(--text-muted); }
 
-/* Stats Overview */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -340,7 +317,6 @@ a {
   margin: var(--space-1) 0 0 0;
 }
 
-/* Data Table */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -363,7 +339,6 @@ a {
 .btn-toggle.on { background: #dcfce7; color: var(--success); }
 .btn-toggle.off { background: var(--border); color: var(--text-muted); }
 
-/* Route Warnings */
 .warning-box {
   margin-top: 4px;
   color: var(--danger);
@@ -371,7 +346,6 @@ a {
   font-weight: 600;
 }
 
-/* Orders List */
 .order-item {
   display: flex;
   justify-content: space-between;
@@ -385,7 +359,6 @@ a {
   color: var(--brand-ink);
 }
 
-/* POS Inputs */
 .card-panel select, .card-panel input {
   width: 100%;
   padding: 10px;

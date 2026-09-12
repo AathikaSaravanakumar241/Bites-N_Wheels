@@ -32,28 +32,16 @@ public class TruckService {
         return truckRepository.findByOwnerUserId(user.getUserId()).orElseThrow(()-> new RuntimeException("No truck found for this owner"));
     }
 
-    /**
-     * The truck belonging to the signed-in owner. Registration creates
-     * exactly one, so the client never needs to pick a truck - it only
-     * needs to know which one it is (for labelling and prefill).
-     */
     public Truck getMyTruck() {
         return getCurrentTruck();
     }
 
-    /**
-     * Update the owner's own truck profile. Only keys present in the body are
-     * touched, so the page can send a partial patch. `status` is handled
-     * separately by setOpen - a customer-facing flag, not a profile field.
-     */
     @Transactional
     public Truck updateMyTruck(Map<String, Object> body) {
         Truck truck = getCurrentTruck();
 
         if (body.containsKey("name")) {
-            String name = str(body.get("name"));
-            // name is NOT NULL in the schema; ignore an attempt to blank it.
-            if (name != null && !name.isBlank()) truck.setName(name.trim());
+            String name = str(body.get("name"));            if (name != null && !name.isBlank()) truck.setName(name.trim());
         }
         if (body.containsKey("tagline"))   truck.setTagline(str(body.get("tagline")));
         if (body.containsKey("cuisine"))   truck.setCuisine(str(body.get("cuisine")));
@@ -67,10 +55,6 @@ public class TruckService {
         return truckRepository.save(truck);
     }
 
-    /**
-     * The "taking orders" switch. INACTIVE is what hides a truck from the
-     * customer area pages (see StationService.getTrucksAtStation).
-     */
     @Transactional
     public Truck setOpen(boolean open) {
         Truck truck = getCurrentTruck();
@@ -84,7 +68,6 @@ public class TruckService {
         return s.isEmpty() ? null : s;
     }
 
-    /** Accepts "16:00" and "16:00:00" from the browser's time input. */
     private static LocalTime time(Object v) {
         String s = str(v);
         if (s == null) return null;
@@ -163,15 +146,6 @@ public class TruckService {
         schedule.setStatus(status);
         return scheduleRepository.save(schedule);
     }
-    /**
-     * Orders for the owner's truck, flattened into VendorOrderDTO.
-     *
-     * The Orders entity hides `user` and OrderItem.`item` behind @JsonIgnore
-     * (lazy proxies must not reach Jackson with open-in-view=false), so the
-     * vendor table had no customer or dish names and fell back to "Guest" and
-     * "Food Item". Mapping here, inside the transaction, reads those
-     * associations while the session is open and hands the page real names.
-     */
     @Transactional(readOnly = true)
     public List<VendorOrderDTO> getOrders(OrderType type) {
         Truck truck = getCurrentTruck();
@@ -185,10 +159,7 @@ public class TruckService {
     @Transactional
     public VendorOrderDTO updateOrderStatus(Long orderId, OrderStatus status) {
         Orders order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        // An owner may only touch orders on their own truck.
-        Truck truck = getCurrentTruck();
+                .orElseThrow(() -> new RuntimeException("Order not found"));        Truck truck = getCurrentTruck();
         if (!order.getTruck().getTruckId().equals(truck.getTruckId())) {
             throw new RuntimeException("That order belongs to another truck.");
         }
@@ -197,7 +168,6 @@ public class TruckService {
         return toVendorDTO(orderRepository.save(order));
     }
 
-    /** Reads the lazy associations - only safe inside a transaction. */
     private static VendorOrderDTO toVendorDTO(Orders order) {
         User customer = order.getUser();
 
@@ -217,9 +187,7 @@ public class TruckService {
                 .rejectReason(order.getRejectReason())
                 .scheduledTime(order.getScheduledTime())
                 .totalAmount(order.getTotalAmount())
-                .createdAt(order.getCreatedAt())
-                // Walk-in (OFFLINE) orders genuinely have no customer row.
-                .customerName(customer == null ? "Walk-in" : customer.getName())
+                .createdAt(order.getCreatedAt())                .customerName(customer == null ? "Walk-in" : customer.getName())
                 .customerPhone(customer == null ? null : customer.getPhone())
                 .stationName(order.getSchedule() == null || order.getSchedule().getStation() == null
                         ? null

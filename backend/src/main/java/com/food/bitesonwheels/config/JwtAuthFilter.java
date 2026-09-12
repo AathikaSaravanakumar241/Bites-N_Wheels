@@ -14,10 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-
-// This filter runs on EVERY request and checks if there is a valid JWT token
-@Component
+import java.io.IOException;@Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -54,10 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (Exception e) {
-            // Invalid/expired token — skip authentication, let request continue
-            // (security rules will block protected routes if needed)
-        }
+        } catch (Exception e) {        }
 
         chain.doFilter(request, response);
     }

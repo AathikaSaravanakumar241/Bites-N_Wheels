@@ -34,8 +34,6 @@ public class JwtUtil {
                 .signWith(getKey())
                 .compact();
     }
-
-    // Extract email/username from JWT
     public String getEmailFromToken(String token) {
 
         return Jwts.parser()
@@ -45,8 +43,6 @@ public class JwtUtil {
                 .getPayload()
                 .getSubject();
     }
-
-    // Validate JWT token
     public boolean isTokenValid(
             String token,
             UserDetails user

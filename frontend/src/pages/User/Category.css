@@ -1,8 +1,6 @@
-/* Uses only tokens from index.css. */
 
 .cp { min-height: 100vh; background: var(--bg); }
 
-/* ---------------- TOP BAR ---------------- */
 
 .cp-bar {
   position: sticky;
@@ -54,7 +52,6 @@
 
 .cp-cart:hover { background: var(--brand-hover); }
 
-/* ---------------- LAYOUT ---------------- */
 
 .cp-main {
   max-width: 1280px;
@@ -66,7 +63,6 @@
   align-items: start;
 }
 
-/* ---------------- LEFT TRUCK LIST ---------------- */
 
 .cp-trucks { position: sticky; top: 84px; }
 
@@ -135,7 +131,6 @@
 
 .cp-eta { color: var(--text); font-weight: 700; }
 
-/* ---------------- DISHES ---------------- */
 
 .cp-section-title {
   display: flex;
@@ -294,13 +289,11 @@
   border-radius: var(--radius);
 }
 
-/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 900px) {
   .cp-main { grid-template-columns: 1fr; }
   .cp-trucks { position: static; }
 }
-/* ---------------- AREA-SCOPED ADDITIONS ---------------- */
 
 .cp-side-note {
   padding: var(--space-3) 12px;

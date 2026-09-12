@@ -7,11 +7,7 @@ import './VendorHome.css'
 import { get as apiGet, describeError } from '../../api.js'
 const ORDERS_URL = '/api/v1/truck/orders'
 
-const OPEN_STATUSES = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
-
-// The orders API sends customerName directly; order.user is @JsonIgnore'd on
-// the entity and was always undefined, so every order read as "Guest".
-function customerName(order) {
+const OPEN_STATUSES = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']function customerName(order) {
   return order?.customerName || 'Walk-in'
 }
 
@@ -71,10 +67,7 @@ export default function VendorHome() {
       ready: by('READY'),
       revenue,
     }
-  }, [orders])
-
-  // Newest first, only orders still in play.
-  const liveOrders = useMemo(
+  }, [orders])  const liveOrders = useMemo(
     () =>
       orders
         .filter((o) => OPEN_STATUSES.includes(o.status))

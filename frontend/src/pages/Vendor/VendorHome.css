@@ -1,5 +1,3 @@
-/* Dashboard content. The shell lives in VendorLayout.css.
-   Uses only tokens from index.css. */
 
 .vh-refresh {
   padding: 9px 16px;
@@ -25,7 +23,6 @@
   font-size: 14px;
 }
 
-/* ---------------- STATS ---------------- */
 
 .vh-stats {
   display: grid;
@@ -55,7 +52,6 @@
 
 .vh-stat-value.is-alert { color: var(--brand-ink); }
 
-/* ---------------- LAYOUT ---------------- */
 
 .vh-grid {
   display: grid;
@@ -106,7 +102,6 @@
   font-size: 14px;
 }
 
-/* ---------------- ORDER LIST ---------------- */
 
 .vh-orders { list-style: none; margin: 0; padding: 0; }
 
@@ -176,7 +171,6 @@
   letter-spacing: 0.4px;
 }
 
-/* ---------------- FACTS ---------------- */
 
 .vh-facts { margin: 0 0 var(--space-3); padding: 0; }
 
@@ -198,7 +192,6 @@
 .vh-open { color: var(--success); }
 .vh-closed { color: var(--danger); }
 
-/* ---------------- QUICK ACTIONS ---------------- */
 
 .vh-quick { display: flex; flex-direction: column; gap: var(--space-2); }
 
@@ -220,7 +213,6 @@
   color: var(--brand-ink);
 }
 
-/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 900px) {
   .vh-grid { grid-template-columns: 1fr; }

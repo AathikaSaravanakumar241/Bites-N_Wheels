@@ -2,17 +2,6 @@ import { NavLink } from 'react-router-dom'
 import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorLayout.css'
 
-/* ---------------------------------------------------------------
-   Shared shell for every vendor page. Wrap a page like this:
-
-     <VendorLayout title="Orders" subtitle="Live queue">
-       ...page content...
-     </VendorLayout>
-
-   The sidebar is the only way to move between vendor pages, so any
-   new vendor page must be added to NAV below AND given a route in
-   App.jsx.
-   --------------------------------------------------------------- */
 
 const NAV = [
   { to: '/vendor',         label: 'Dashboard', icon: '▤', end: true },
@@ -59,9 +48,7 @@ export default function VendorLayout({ title, subtitle, actions, children }) {
         <button
           type="button"
           className={isOpen ? 'vl-toggle is-open' : 'vl-toggle'}
-          onClick={() => {
-            // Now a network call; a rejection here would otherwise be silent.
-            Promise.resolve(setIsOpen(!isOpen)).catch(() => {})
+          onClick={() => {            Promise.resolve(setIsOpen(!isOpen)).catch(() => {})
           }}
           aria-pressed={isOpen}
         >

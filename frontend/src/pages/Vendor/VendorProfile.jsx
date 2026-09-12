@@ -3,8 +3,6 @@ import VendorLayout from './VendorLayout.jsx'
 import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorProfile.css'
 
-/* These values decide which customer filters this truck appears in,
-   so they must match the customer-side filter options exactly. */
 const CUISINES = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
 const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
 
@@ -15,12 +13,7 @@ export default function VendorProfile() {
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState('')
-
-  // The profile now arrives from the API, so the first render has only the
-  // cached (or empty) copy. Track it until that first load lands, then leave
-  // the form alone so it never clobbers what the owner is typing.
-  useEffect(() => {
+  const [saveError, setSaveError] = useState('')  useEffect(() => {
     if (loading) setForm(profile)
   }, [loading, profile])
 
@@ -48,10 +41,7 @@ export default function VendorProfile() {
     try {
       await setProfile(form)
       setSaved(true)
-    } catch (err) {
-      // Previously this wrote to localStorage and could not fail. It now hits
-      // the API, so a failure has to be visible rather than silently "Saved".
-      setSaveError(err.message || 'Could not save your profile. Try again.')
+    } catch (err) {      setSaveError(err.message || 'Could not save your profile. Try again.')
     } finally {
       setSaving(false)
     }

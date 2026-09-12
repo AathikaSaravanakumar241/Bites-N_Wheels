@@ -16,7 +16,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Page Header */
 
 .page-header {
     width: 100%;
@@ -40,7 +39,6 @@ body {
     font-size: 16px;
 }
 
-/* Refresh Button */
 
 .refresh-button {
     border: none;
@@ -71,7 +69,6 @@ body {
     transform: none;
 }
 
-/* Error */
 
 .error-message {
     width: 100%;
@@ -84,7 +81,6 @@ body {
     font-size: 14px;
 }
 
-/* Orders Section */
 
 .orders-section {
     width: 100%;
@@ -94,7 +90,6 @@ body {
     box-shadow: 0 8px 25px rgba(124, 45, 18, 0.08);
 }
 
-/* Orders Header */
 
 .orders-header {
     display: flex;
@@ -127,7 +122,6 @@ body {
     white-space: nowrap;
 }
 
-/* Table Container */
 
 .orders-table-container {
     width: 100%;
@@ -137,7 +131,6 @@ body {
     border-radius: 10px;
 }
 
-/* Scrollbar */
 
 .orders-table-container::-webkit-scrollbar {
     height: 9px;
@@ -157,7 +150,6 @@ body {
     background: #ea580c;
 }
 
-/* Table */
 
 .orders-table {
     width: 100%;
@@ -166,7 +158,6 @@ body {
     background: white;
 }
 
-/* Table Header */
 
 .orders-table th {
     padding: 15px;
@@ -179,7 +170,6 @@ body {
     white-space: nowrap;
 }
 
-/* Table Body */
 
 .orders-table td {
     padding: 16px 15px;
@@ -201,7 +191,6 @@ body {
     border-bottom: none;
 }
 
-/* Order ID */
 
 .order-id {
     display: inline-block;
@@ -210,7 +199,6 @@ body {
     white-space: nowrap;
 }
 
-/* Customer */
 
 .customer-name {
     display: block;
@@ -219,7 +207,6 @@ body {
     font-weight: 600;
 }
 
-/* Food Items */
 
 .food-items {
     display: flex;
@@ -233,7 +220,6 @@ body {
     line-height: 1.4;
 }
 
-/* Order Type */
 
 .order-type {
     display: inline-block;
@@ -246,7 +232,6 @@ body {
     white-space: nowrap;
 }
 
-/* Schedule Type */
 
 .schedule-type {
     display: inline-block;
@@ -259,7 +244,6 @@ body {
     white-space: nowrap;
 }
 
-/* Rejected Reason */
 
 .reject-reason {
     display: block;
@@ -276,7 +260,6 @@ body {
     font-size: 14px;
 }
 
-/* Scheduled Time */
 
 .scheduled-time {
     display: block;
@@ -286,7 +269,6 @@ body {
     white-space: nowrap;
 }
 
-/* Total Amount */
 
 .order-price {
     display: block;
@@ -296,7 +278,6 @@ body {
     white-space: nowrap;
 }
 
-/* Created At */
 
 .created-at {
     display: block;
@@ -306,7 +287,6 @@ body {
     white-space: nowrap;
 }
 
-/* Status */
 
 .status {
     display: inline-block;
@@ -317,49 +297,42 @@ body {
     white-space: nowrap;
 }
 
-/* Pending */
 
 .status.pending {
     background: #fef3c7;
     color: #92400e;
 }
 
-/* Accepted */
 
 .status.accepted {
     background: #dbeafe;
     color: #1e40af;
 }
 
-/* Preparing */
 
 .status.preparing {
     background: #ffedd5;
     color: #c2410c;
 }
 
-/* Ready */
 
 .status.ready {
     background: #dcfce7;
     color: #166534;
 }
 
-/* Completed */
 
 .status.completed {
     background: #d1fae5;
     color: #065f46;
 }
 
-/* Rejected */
 
 .status.rejected {
     background: #fee2e2;
     color: #991b1b;
 }
 
-/* Actions */
 
 .order-actions {
     display: flex;
@@ -369,7 +342,6 @@ body {
     min-width: 150px;
 }
 
-/* Action Buttons */
 
 .action-button {
     border: none;
@@ -392,7 +364,6 @@ body {
     transform: translateY(0);
 }
 
-/* Accept */
 
 .accept-button {
     background: #16a34a;
@@ -402,7 +373,6 @@ body {
     background: #15803d;
 }
 
-/* Reject */
 
 .reject-button {
     background: #dc2626;
@@ -412,7 +382,6 @@ body {
     background: #b91c1c;
 }
 
-/* Preparing */
 
 .prepare-button {
     background: #ea580c;
@@ -422,7 +391,6 @@ body {
     background: #c2410c;
 }
 
-/* Ready */
 
 .ready-button {
     background: #2563eb;
@@ -432,7 +400,6 @@ body {
     background: #1d4ed8;
 }
 
-/* Complete */
 
 .complete-button {
     background: #059669;
@@ -442,7 +409,6 @@ body {
     background: #047857;
 }
 
-/* Completed Text */
 
 .completed-text {
     color: #047857;
@@ -451,7 +417,6 @@ body {
     white-space: nowrap;
 }
 
-/* Rejected Text */
 
 .rejected-text {
     color: #b91c1c;
@@ -460,7 +425,6 @@ body {
     white-space: nowrap;
 }
 
-/* No Action */
 
 .no-action {
     color: #78716c;
@@ -468,7 +432,6 @@ body {
     white-space: nowrap;
 }
 
-/* Loading */
 
 .loading {
     padding: 70px 20px;
@@ -481,7 +444,6 @@ body {
     font-size: 16px;
 }
 
-/* No Orders */
 
 .no-orders {
     padding: 70px 20px;
@@ -500,7 +462,6 @@ body {
     font-size: 14px;
 }
 
-/* Tablet */
 
 @media (max-width: 1000px) {
     .truck-orders-container {
@@ -522,7 +483,6 @@ body {
     }
 }
 
-/* Mobile */
 
 @media (max-width: 600px) {
     .truck-orders-container {

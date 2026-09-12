@@ -30,14 +30,6 @@ public class StationService {
     private final OrderRepository         orderRepository;
     private final MenuItemRepository      menuItemRepository;
 
-    /**
-     * Areas a customer can pick from, alphabetical - and the same list the
-     * owner picks a stop from.
-     *
-     * `app.demo.areas` narrows this to a handful of areas so a demo can be
-     * walked end to end without hunting for one that has food. Leave the
-     * property empty to serve every area.
-     */
     @Value("${app.demo.areas:}")
     private List<String> demoAreas;
 
@@ -49,12 +41,6 @@ public class StationService {
                 .toList();
     }
 
-    /**
-     * Every truck visiting this area today, with the food it is carrying.
-     * This is the customer's entry point: pick an area, see the food.
-     * Only ACTIVE trucks and available items are returned - a closed truck
-     * or a sold-out dish should not appear as orderable.
-     */
     @Transactional(readOnly = true)
     public List<AreaTruckDTO> getTrucksAtStation(Long stationId) {
         stationRepository.findById(stationId)

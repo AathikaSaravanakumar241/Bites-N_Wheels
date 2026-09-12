@@ -8,10 +8,7 @@ function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  // api.js redirects here with ?expired=1 when a token is rejected, so the
-  // user is told why they are back at the login form.
-  const [error, setError]       = useState(
+  const [password, setPassword] = useState("");  const [error, setError]       = useState(
     new URLSearchParams(window.location.search).has("expired")
       ? "Your session expired. Please sign in again."
       : ""

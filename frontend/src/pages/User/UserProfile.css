@@ -1,8 +1,6 @@
-/* Uses only tokens from index.css. */
 
 .up { min-height: 100vh; background: var(--bg); }
 
-/* ---------------- TOP BAR ---------------- */
 
 .up-bar {
   position: sticky;
@@ -33,7 +31,6 @@
 
 .up-title { margin: 0; font-size: 22px; }
 
-/* ---------------- LAYOUT ---------------- */
 
 .up-main {
   max-width: 720px;
@@ -70,7 +67,6 @@
 
 .up-sub { margin: 4px 0 0; color: var(--text-muted); font-size: 14px; }
 
-/* ---------------- DETAILS ---------------- */
 
 .up-heading {
   margin: 0 0 var(--space-3);
@@ -98,7 +94,6 @@
 
 .up-facts dd { margin: 0; font-weight: 600; font-size: 14px; }
 
-/* ---------------- LINKS ---------------- */
 
 .up-links { display: grid; gap: var(--space-2); }
 
@@ -118,7 +113,6 @@
 
 .up-link:hover { border-color: var(--brand); color: var(--brand-ink); }
 
-/* ---------------- LOG OUT ---------------- */
 
 .up-logout {
   width: 100%;

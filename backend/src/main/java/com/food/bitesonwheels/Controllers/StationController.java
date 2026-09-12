@@ -31,7 +31,6 @@ public class StationController {
         return ResponseEntity.ok(stationService.getOrderTracking(orderId, getUserId()));
     }
 
-    /** All areas, for the customer's area picker and the owner's stop picker. */
     @GetMapping("/stations")
     public ResponseEntity<List<Station>> getAllStations() {
         return ResponseEntity.ok(stationService.getAllStations());
@@ -42,7 +41,6 @@ public class StationController {
         return ResponseEntity.ok(stationService.getStation(stationId));
     }
 
-    /** Trucks visiting this area today, with the food they are carrying. */
     @GetMapping("/stations/{stationId}/trucks")
     public ResponseEntity<List<AreaTruckDTO>> getTrucksAtStation(@PathVariable Long stationId) {
         return ResponseEntity.ok(stationService.getTrucksAtStation(stationId));

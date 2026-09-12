@@ -1,11 +1,9 @@
-/* Uses only tokens from index.css - no hardcoded brand colours. */
 
 .uh {
   min-height: 100vh;
   background: var(--bg);
 }
 
-/* ---------------- HEADER ---------------- */
 
 .uh-header {
   position: sticky;
@@ -185,7 +183,6 @@
 
 .uh-profile:hover { background: var(--surface); }
 
-/* ---------------- PROMOS ---------------- */
 
 .uh-promo {
   max-width: 1280px;
@@ -234,7 +231,6 @@
 
 .uh-promo-dots .is-active { background: var(--brand); width: 20px; border-radius: 999px; }
 
-/* ---------------- LAYOUT ---------------- */
 
 .uh-main {
   max-width: 1280px;
@@ -246,7 +242,6 @@
   align-items: start;
 }
 
-/* ---------------- FILTERS ---------------- */
 
 .uh-filters {
   position: sticky;
@@ -302,7 +297,6 @@
 
 .uh-check input { accent-color: var(--brand); cursor: pointer; }
 
-/* ---------------- CATEGORIES ---------------- */
 
 .uh-section-title {
   display: flex;
@@ -367,7 +361,6 @@
   font-weight: 600;
 }
 
-/* ---------------- TRUCK CARDS ---------------- */
 
 .uh-trucks {
   display: grid;
@@ -421,14 +414,12 @@
   border-radius: var(--radius);
 }
 
-/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 900px) {
   .uh-main { grid-template-columns: 1fr; }
   .uh-filters { position: static; }
   .uh-search { order: 3; width: 100%; flex-basis: 100%; }
 }
-/* ---------------- AREA-SCOPED HOME (dishes + arrivals) ---------------- */
 
 .uh-dim { color: var(--text-muted); }
 

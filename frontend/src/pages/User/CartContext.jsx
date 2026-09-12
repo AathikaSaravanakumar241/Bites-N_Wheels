@@ -9,17 +9,6 @@ export function useCart() {
   return value
 }
 
-/* The two cart endpoints disagree in shape, and neither matches what this
-   context assumed:
-
-     GET  /api/v1/cart        -> { items: CartItem[], total }
-     POST /api/v1/cart/items  -> CartItem[]            (a bare array)
-
-   and a CartItem is { foodId, truckId, name, quantity, price }. There is no
-   top-level truckId - it sits on each line. Reading `data.truckId` therefore
-   always produced null, `truck` stayed null, and the cart page said "there's
-   nothing to check out" even with items in it. The line id is `foodId`, not
-   `itemId`. Normalising both shapes here keeps that in one place. */
 function normalizeCart(data, fallbackTruckId = null) {
   const items = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []
   const truckId = data?.truckId ?? items[0]?.truckId ?? fallbackTruckId ?? null
@@ -120,11 +109,7 @@ export function CartProvider({ children }) {
       paymentMethod: payment,
       note,
     })
-    const orderId = data.orderId
-    // OrderPlaced reads order.schedule.type/.label and order.truckName. The API
-    // response carries neither, so without keeping them here the confirmation
-    // page throws on an undefined `schedule` and renders a blank screen.
-    setOrders((list) => [
+    const orderId = data.orderId    setOrders((list) => [
       {
         ...data,
         lines,

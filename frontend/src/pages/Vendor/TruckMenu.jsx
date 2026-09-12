@@ -21,13 +21,7 @@ function TruckMenu() {
 
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    // The truck list used to be derived from existing menu items, which meant a
-    // new owner - who has none yet - could never select a truck, and so could
-    // never add a first item. The backend resolves the truck from the token
-    // anyway; this just needs to know which one it is.
-    useEffect(() => {
+    const [error, setError] = useState("");    useEffect(() => {
         apiGet("/api/v1/truck/me")
             .then(truck => {
                 if (!truck) return;
@@ -35,7 +29,6 @@ function TruckMenu() {
                 setTruckId(String(truck.truckId));
             })
             .catch(() => {
-                /* falls back to the ids discovered from existing menu items */
             });
     }, []);
 
@@ -53,17 +46,7 @@ function TruckMenu() {
             .finally(() => {
                 setLoading(false);
             });
-    }
-
-    // An owner has exactly one truck, created at registration.
-    const truckIds = myTruck ? [myTruck.truckId] : [];
-
-    // GET /api/v1/truck/menu-items is already scoped to the signed-in owner's
-    // truck, and the MenuItem JSON carries no truckId (the `truck` relation is
-    // @JsonIgnore'd to keep the lazy proxy out of the response). Filtering on
-    // item.truckId therefore compared against undefined and matched nothing,
-    // which is why the menu always read "No food items found".
-    const truckItems = truckId === "" ? [] : menuItems;
+    }    const truckIds = myTruck ? [myTruck.truckId] : [];    const truckItems = truckId === "" ? [] : menuItems;
 
     const foodTypeItems = truckItems.filter(item => {
         if (foodType === "") {
@@ -83,13 +66,7 @@ function TruckMenu() {
                 .map(item => item.categoryTag)
                 .filter(category => category)
         )
-    ];
-
-    // Suggestions for the Add form. Deliberately wider than `categories`
-    // above (which drives the filter dropdown and follows the current
-    // filters): here we want every tag this truck has ever used, plus the
-    // common ones, so a brand-new truck still gets useful hints.
-    const COMMON_CATEGORIES = [
+    ];    const COMMON_CATEGORIES = [
         "Beverages", "Biryani", "Burgers", "Desserts", "North Indian",
         "Pizza", "Rolls", "Snacks", "South Indian", "Street Food",
     ];
@@ -109,10 +86,7 @@ function TruckMenu() {
         return item.categoryTag === categoryTag;
     });
 
-    function addMenu() {
-        // Name the missing fields. The old message just said "fill all
-        // required fields", which is no help when one of them is off-screen.
-        const missing = [
+    function addMenu() {        const missing = [
             [truckId === "", "Truck"],
             [foodType === "", "Food Type"],
             [categoryTag.trim() === "", "Category"],
@@ -232,11 +206,7 @@ function TruckMenu() {
     }
 
     function clearForm() {
-        setEditingId(null);
-        // Keep the truck selected. There is only ever one for this owner, and
-        // clearing it hid the menu list behind "Select a truck" after every
-        // add - exactly when you want to see what you just added.
-        setTruckId(myTruck ? String(myTruck.truckId) : "");
+        setEditingId(null);        setTruckId(myTruck ? String(myTruck.truckId) : "");
         setFoodType("");
         setCategoryTag("");
         setName("");

@@ -1,8 +1,6 @@
-/* Uses only tokens from index.css. */
 
 .ct { min-height: 100vh; background: var(--bg); }
 
-/* ---------------- TOP BAR ---------------- */
 
 .ct-bar {
   position: sticky;
@@ -35,7 +33,6 @@
 
 .ct-sub { color: var(--text-muted); font-size: 14px; }
 
-/* ---------------- LAYOUT ---------------- */
 
 .ct-main {
   max-width: 1000px;
@@ -54,7 +51,6 @@
   background: var(--bg);
 }
 
-/* ---------------- TRUCK HEADER ---------------- */
 
 .ct-truck {
   display: flex;
@@ -104,7 +100,6 @@
   text-decoration: underline;
 }
 
-/* ---------------- LINE ITEMS ---------------- */
 
 .ct-lines {
   list-style: none;
@@ -201,7 +196,6 @@
 
 .ct-remove:hover { color: var(--danger); }
 
-/* ---------------- BILL ---------------- */
 
 .ct-bill { position: sticky; top: 84px; }
 
@@ -246,7 +240,6 @@
   font-size: 12px;
 }
 
-/* ---------------- EMPTY ---------------- */
 
 .ct-empty-wrap {
   max-width: 1000px;
@@ -263,7 +256,6 @@
   border-radius: var(--radius);
 }
 
-/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 820px) {
   .ct-main { grid-template-columns: 1fr; }

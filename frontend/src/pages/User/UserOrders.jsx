@@ -3,12 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { get as apiGet } from '../../api.js'
 import './UserOrders.css'
 
-/* Order history for the signed-in customer.
-
-   GET /api/v1/orders returns OrderSummaryDTO scoped to the user by the token,
-   so there is nothing to filter client-side. */
-
-// Statuses where the truck is still working on the order, so tracking helps.
 const LIVE = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
 
 const STATUS_LABEL = {
