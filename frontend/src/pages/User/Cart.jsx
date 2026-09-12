@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
+import { IconArrowLeft, IconX, IconMinus, IconPlus, IconShoppingBag, IconTruck } from '../../icons.jsx'
 import './Cart.css'
 
 const PACKING_FEE = 20
@@ -13,11 +14,14 @@ export default function Cart() {
       <div className="ct">
         <div className="ct-bar">
           <div className="ct-bar-inner">
-            <Link to="/user" className="ct-back">← Keep browsing</Link>
+            <Link to="/user" className="ct-back"><IconArrowLeft size={14} /> Keep browsing</Link>
             <h1 className="ct-title">Your cart</h1>
           </div>
         </div>
         <div className="ct-empty-wrap">
+          <div className="ct-empty-icon" aria-hidden="true">
+            <IconShoppingBag size={48} />
+          </div>
           <p className="ct-empty">
             Your cart is empty.
             <br />
@@ -34,7 +38,7 @@ export default function Cart() {
     <div className="ct">
       <div className="ct-bar">
         <div className="ct-bar-inner">
-          <Link to="/user" className="ct-back">← Keep browsing</Link>
+          <Link to="/user" className="ct-back"><IconArrowLeft size={14} /> Keep browsing</Link>
           <h1 className="ct-title">Your cart</h1>
           <span className="ct-sub">{count} item{count === 1 ? '' : 's'}</span>
         </div>
@@ -43,9 +47,12 @@ export default function Cart() {
       <div className="ct-main">
         <section className="ct-panel">
           <div className="ct-truck">
-            <div>
-              <h2 className="ct-truck-name">{truck.name}</h2>
-              <p className="ct-truck-tagline">{truck.tagline}</p>
+            <div className="ct-truck-info">
+              <IconTruck size={16} />
+              <div>
+                <h2 className="ct-truck-name">{truck.name}</h2>
+                <p className="ct-truck-tagline">{truck.tagline}</p>
+              </div>
             </div>
             <span className="ct-eta">{truck.etaMin} min</span>
           </div>
@@ -72,9 +79,13 @@ export default function Cart() {
                 </div>
 
                 <div className="ct-stepper">
-                  <button type="button" onClick={() => removeItem(line.id)} aria-label={`Remove one ${line.name}`}>−</button>
+                  <button type="button" onClick={() => removeItem(line.id)} aria-label={`Remove one ${line.name}`}>
+                    <IconMinus size={13} />
+                  </button>
                   <span>{line.qty}</span>
-                  <button type="button" onClick={() => addItem(truck.id, line.id)} aria-label={`Add one ${line.name}`}>+</button>
+                  <button type="button" onClick={() => addItem(truck.id, line.id)} aria-label={`Add one ${line.name}`}>
+                    <IconPlus size={13} />
+                  </button>
                 </div>
 
                 <span className="ct-line-total">₹{line.price * line.qty}</span>
@@ -85,7 +96,7 @@ export default function Cart() {
                   onClick={() => removeLine(line.id)}
                   aria-label={`Remove ${line.name} from cart`}
                 >
-                  ✕
+                  <IconX size={13} />
                 </button>
               </li>
             ))}

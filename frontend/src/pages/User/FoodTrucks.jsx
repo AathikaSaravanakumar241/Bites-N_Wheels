@@ -3,15 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
 import { useArea } from './useArea.js'
 import { fetchAreaCatalog, formatTime } from './areaCatalog.js'
+import { IconShoppingBag, IconArrowLeft, IconClock, IconMinus, IconPlus } from '../../icons.jsx'
 import './FoodTrucks.css'
 
-/**
- * "Which trucks are bringing Chicken Biryani to Tambaram today?"
- *
- * Lists every truck visiting the selected area that carries the chosen
- * dish, with price, arrival window and availability. Sorted by arrival
- * so the soonest food is first.
- */
 export default function FoodTrucks() {
   const { foodName } = useParams()
   const navigate = useNavigate()
@@ -33,7 +27,6 @@ export default function FoodTrucks() {
       .finally(() => setLoading(false))
   }, [area])
 
-  // Every truck in this area selling this dish, soonest arrival first.
   const options = useMemo(() => {
     const target = dish.toLowerCase()
     return items
@@ -51,7 +44,6 @@ export default function FoodTrucks() {
         )) startNewCart(truckId, itemId)
       }
     }
-    // addItem is sync in the local cart, async once it posts to /cart.
     if (result && typeof result.then === 'function') result.then(apply).catch(() => {})
     else apply(result)
   }
@@ -60,7 +52,7 @@ export default function FoodTrucks() {
     return (
       <div className="ft">
         <div className="ft-bar"><div className="ft-bar-inner">
-          <Link to="/user" className="ft-back">← Home</Link>
+          <Link to="/user" className="ft-back"><IconArrowLeft size={14} /> Home</Link>
         </div></div>
         <p className="ft-empty">Pick your area first.</p>
       </div>
@@ -71,7 +63,7 @@ export default function FoodTrucks() {
     <div className="ft">
       <div className="ft-bar">
         <div className="ft-bar-inner">
-          <Link to="/user" className="ft-back">← Back</Link>
+          <Link to="/user" className="ft-back"><IconArrowLeft size={14} /> Back</Link>
           <div>
             <h1 className="ft-title">{dish}</h1>
             <p className="ft-sub">
@@ -80,7 +72,8 @@ export default function FoodTrucks() {
           </div>
           {count > 0 && (
             <button type="button" className="ft-cart" onClick={() => navigate('/user/cart')}>
-              🛒 {count} · View cart
+              <IconShoppingBag size={15} />
+              {count} · View cart
             </button>
           )}
         </div>
@@ -90,7 +83,9 @@ export default function FoodTrucks() {
         {error && <p className="ft-empty">{error}</p>}
 
         {loading ? (
-          <p className="ft-empty">Loading trucks…</p>
+          <div className="ft-list">
+            {[...Array(3)].map((_, i) => <div key={i} className="ft-card-skeleton" />)}
+          </div>
         ) : options.length === 0 ? (
           <p className="ft-empty">
             No truck is bringing {dish} to {area.name} today.
@@ -124,11 +119,11 @@ export default function FoodTrucks() {
 
                       <dl className="ft-facts">
                         <div>
-                          <dt>Arrives</dt>
+                          <dt><IconClock size={11} /> Arrives</dt>
                           <dd>{formatTime(opt.arrivalTime) || '—'}</dd>
                         </div>
                         <div>
-                          <dt>Leaves</dt>
+                          <dt><IconClock size={11} /> Leaves</dt>
                           <dd>{formatTime(opt.departureTime) || '—'}</dd>
                         </div>
                         <div>
@@ -155,9 +150,13 @@ export default function FoodTrucks() {
                         </span>
                       ) : qty ? (
                         <div className="ft-stepper">
-                          <button type="button" onClick={() => removeItem(opt.id)} aria-label="Remove one">−</button>
+                          <button type="button" onClick={() => removeItem(opt.id)} aria-label="Remove one">
+                            <IconMinus size={13} />
+                          </button>
                           <span>{qty}</span>
-                          <button type="button" onClick={() => handleAdd(opt.truckId, opt.id)} aria-label="Add one">+</button>
+                          <button type="button" onClick={() => handleAdd(opt.truckId, opt.id)} aria-label="Add one">
+                            <IconPlus size={13} />
+                          </button>
                         </div>
                       ) : (
                         <button

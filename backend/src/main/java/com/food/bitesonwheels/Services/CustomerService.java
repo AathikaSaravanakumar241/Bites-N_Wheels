@@ -78,8 +78,6 @@ public class CustomerService {
                     .filter(item -> "VEG".equalsIgnoreCase(item.getFoodType().name()))
                     .collect(Collectors.toList());
         }
-
-        // group by truck name — access truck inside the open transaction
         return results.stream()
                 .collect(Collectors.groupingBy(item ->
                         item.getTruck() != null ? item.getTruck().getName() : "Unknown"));

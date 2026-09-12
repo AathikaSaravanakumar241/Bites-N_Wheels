@@ -44,8 +44,6 @@ public class User implements UserDetails {
     @Column(name = "created_at", updatable = false, insertable = false)
     private OffsetDateTime createdAt;
 
-    // Spring Security needs these methods
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

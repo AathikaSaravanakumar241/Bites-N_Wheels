@@ -2,21 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import VendorLayout from './VendorLayout.jsx'
 import { get, post, describeError } from '../../api.js'
+import { IconMap } from '../../icons.jsx'
 import './VendorJourney.css'
-
-/* ---------------------------------------------------------------
-   TODAY'S JOURNEY
-
-   Owner flow: pick the areas the truck will visit today, set an
-   arrival and departure time for each, then save.
-
-   POST /api/v1/truck/today-setup replaces the whole plan for today
-   (the service deletes existing rows for the date first), so this page
-   always submits the complete list, never a single stop.
-
-   The customer side reads exactly this: an area page lists the trucks
-   whose journey includes that area today.
-   --------------------------------------------------------------- */
 
 const SETUP_URL = '/api/v1/truck/today-setup'
 
@@ -26,6 +13,25 @@ function nextHalfHour(offsetMinutes = 0) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
+function addMinutes(hhmm, mins) {
+  const [h, m] = String(hhmm).split(':').map(Number)
+  const total = (h * 60 + m + mins) % (24 * 60)
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
+function durationText(arr, dep) {
+  if (!arr || !dep) return ''
+  const [h1, m1] = arr.split(':').map(Number)
+  const [h2, m2] = dep.split(':').map(Number)
+  let diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+  if (diff < 0) diff += 24 * 60
+  const hrs = Math.floor(diff / 60)
+  const mins = diff % 60
+  if (hrs === 0) return `${mins}m`
+  if (mins === 0) return `${hrs}h`
+  return `${hrs}h ${mins}m`
+}
+
 export default function VendorJourney() {
   const [stations, setStations] = useState([])
   const [stops, setStops] = useState([])
@@ -33,8 +39,12 @@ export default function VendorJourney() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState('')
-  const [pick, setPick] = useState('')
   const [query, setQuery] = useState('')
+  
+  // Single location selected at a time
+  const [selectedStationId, setSelectedStationId] = useState(null)
+  const [newArrival, setNewArrival] = useState(nextHalfHour(30))
+  const [newDeparture, setNewDeparture] = useState(addMinutes(nextHalfHour(30), 90))
 
   useEffect(() => {
     get('/api/v1/stations', false)
@@ -51,29 +61,37 @@ export default function VendorJourney() {
       .filter((s) => (q ? s.name.toLowerCase().includes(q) : true))
   }, [stations, stops, query])
 
-  function addStop() {
-    const station = stations.find((s) => String(s.stationId) === String(pick))
-    if (!station) return
-    const last = stops[stops.length - 1]
-    const arrival = last ? last.departureTime : nextHalfHour(30)
+  const selectedStation = useMemo(() => {
+    return stations.find((s) => s.stationId === selectedStationId) || null
+  }, [stations, selectedStationId])
+
+  function handleSelectStation(station) {
+    if (selectedStationId === station.stationId) {
+      setSelectedStationId(null)
+    } else {
+      setSelectedStationId(station.stationId)
+      const lastStop = stops[stops.length - 1]
+      const arrival = lastStop ? lastStop.departureTime : nextHalfHour(30)
+      setNewArrival(arrival)
+      setNewDeparture(addMinutes(arrival, 90))
+    }
+  }
+
+  function handleAddSelectedStop() {
+    if (!selectedStation) return
+
     setStops((cur) => [
       ...cur,
       {
-        stationId: station.stationId,
-        name: station.name,
-        arrivalTime: arrival,
-        departureTime: addMinutes(arrival, 90),
+        stationId: selectedStation.stationId,
+        name: selectedStation.name,
+        arrivalTime: newArrival,
+        departureTime: newDeparture,
       },
     ])
-    setPick('')
-    setQuery('')
-    setSaved('')
-  }
 
-  function addMinutes(hhmm, mins) {
-    const [h, m] = String(hhmm).split(':').map(Number)
-    const total = (h * 60 + m + mins) % (24 * 60)
-    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+    setSelectedStationId(null)
+    setSaved('')
   }
 
   function updateStop(index, field, value) {
@@ -97,16 +115,15 @@ export default function VendorJourney() {
     setSaved('')
   }
 
-  // Times must make sense or the journey is not publishable.
   const problems = useMemo(() => {
     const list = []
     stops.forEach((s, i) => {
       if (s.departureTime <= s.arrivalTime) {
-        list.push(`${s.name}: departure must be after arrival.`)
+        list.push(`${s.name}: Departure time must be after arrival time.`)
       }
       const prev = stops[i - 1]
       if (prev && s.arrivalTime < prev.departureTime) {
-        list.push(`${s.name}: you are still at ${prev.name} until ${prev.departureTime}.`)
+        list.push(`${s.name}: Arrives before leaving ${prev.name} (${prev.departureTime}).`)
       }
     })
     return list
@@ -125,7 +142,7 @@ export default function VendorJourney() {
       }))
       const result = await post(SETUP_URL, payload)
       const n = Array.isArray(result) ? result.length : stops.length
-      setSaved(`Journey saved — ${n} stop${n === 1 ? '' : 's'} published for today.`)
+      setSaved(`Journey published successfully — ${n} stop${n === 1 ? '' : 's'} active for today.`)
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
         setError('You need to be logged in as a truck owner to publish a journey.')
@@ -139,128 +156,226 @@ export default function VendorJourney() {
 
   return (
     <VendorLayout
-      title="Today's journey"
-      subtitle="Where you are going today, and when you get there"
+      title="Journey Planner"
+      subtitle="Select your locations and configure your route schedule for today"
       actions={
         <button
           type="button"
-          className="vj-save"
+          className="vj-save-btn"
           onClick={saveJourney}
           disabled={saving || stops.length === 0 || problems.length > 0}
         >
-          {saving ? 'Publishing…' : 'Publish journey'}
+          {saving ? 'Publishing…' : 'Publish Route'}
         </button>
       }
     >
       {error && <div className="vj-alert is-error">{error}</div>}
       {saved && <div className="vj-alert is-ok">{saved}</div>}
 
-      <div className="vj-grid">
-        <section className="vj-panel">
-          <h2 className="vj-panel-title">
-            Stops
-            <span className="vj-count">{stops.length}</span>
-          </h2>
-          <p className="vj-hint">
-            Customers in these areas will see your food today. Publishing
-            replaces your whole plan for today.
-          </p>
+      <div className="vj-layout-grid">
+        {/* ─── SECTION 1: SELECT LOCATION (FIRST SECTION) ─── */}
+        <section className="vj-section-panel">
+          <div className="vj-panel-header">
+            <h2 className="vj-panel-title">1. Select Location</h2>
+            <span className="vj-panel-sub">Choose one location at a time to add to your route</span>
+          </div>
 
-          {stops.length === 0 ? (
-            <p className="vj-empty">
-              No stops yet. Add the first area you are heading to.
-            </p>
-          ) : (
-            <ol className="vj-stops">
-              {stops.map((stop, i) => (
-                <li key={stop.stationId} className="vj-stop">
-                  <span className="vj-seq">{i + 1}</span>
+          <div className="vj-search-wrap">
+            <input
+              type="search"
+              className="vj-search-input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by area name…"
+            />
+          </div>
 
-                  <div className="vj-stop-body">
-                    <span className="vj-stop-name">{stop.name}</span>
-                    <div className="vj-times">
-                      <label>
-                        <span>Arrive</span>
-                        <input
-                          type="time"
-                          value={stop.arrivalTime}
-                          onChange={(e) => updateStop(i, 'arrivalTime', e.target.value)}
-                        />
-                      </label>
-                      <label>
-                        <span>Leave</span>
-                        <input
-                          type="time"
-                          value={stop.departureTime}
-                          onChange={(e) => updateStop(i, 'departureTime', e.target.value)}
-                        />
-                      </label>
+          <div className="vj-locations-list">
+            {loading ? (
+              <p className="vj-muted-msg">Loading available areas…</p>
+            ) : available.length === 0 ? (
+              <p className="vj-muted-msg">
+                {query ? 'No matching locations found.' : 'All locations are already added to your route.'}
+              </p>
+            ) : (
+              available.map((station) => {
+                const isSelected = selectedStationId === station.stationId
+                return (
+                  <div
+                    key={station.stationId}
+                    className={`vj-location-item ${isSelected ? 'is-selected' : ''}`}
+                    onClick={() => handleSelectStation(station)}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="vj-location-main">
+                      <span className="vj-location-icon" aria-hidden="true">
+                        <IconMap size={18} />
+                      </span>
+                      <div className="vj-location-text">
+                        <span className="vj-location-name">{station.name}</span>
+                        <span className="vj-location-status">
+                          {isSelected ? 'Selected' : 'Click to select'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="vj-stop-actions">
-                    <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">↑</button>
-                    <button type="button" onClick={() => move(i, 1)} disabled={i === stops.length - 1} aria-label="Move down">↓</button>
-                    <button type="button" className="vj-del" onClick={() => removeStop(i)} aria-label={`Remove ${stop.name}`}>✕</button>
+                    <span className={`vj-select-radio ${isSelected ? 'is-checked' : ''}`} />
                   </div>
-                </li>
-              ))}
-            </ol>
-          )}
+                )
+              })
+            )}
+          </div>
 
-          {problems.length > 0 && (
-            <ul className="vj-problems">
-              {problems.map((p) => <li key={p}>{p}</li>)}
-            </ul>
+          {/* Schedule picker for the selected location */}
+          {selectedStation && (
+            <div className="vj-schedule-drawer">
+              <div className="vj-drawer-header">
+                <span className="vj-drawer-title">Schedule for {selectedStation.name}</span>
+              </div>
+
+              <div className="vj-drawer-times">
+                <div className="vj-time-block">
+                  <label className="vj-time-label">Arrival</label>
+                  <input
+                    type="time"
+                    className="vj-time-input"
+                    value={newArrival}
+                    onChange={(e) => setNewArrival(e.target.value)}
+                  />
+                </div>
+
+                <span className="vj-drawer-arrow">→</span>
+
+                <div className="vj-time-block">
+                  <label className="vj-time-label">Departure</label>
+                  <input
+                    type="time"
+                    className="vj-time-input"
+                    value={newDeparture}
+                    onChange={(e) => setNewDeparture(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="vj-add-stop-btn"
+                onClick={handleAddSelectedStop}
+              >
+                Add {selectedStation.name} to Route
+              </button>
+            </div>
           )}
         </section>
 
-        <aside className="vj-side">
-          <section className="vj-panel">
-            <h2 className="vj-panel-title">Add a stop</h2>
+        {/* ─── SECTION 2: ROUTE SCHEDULE (SECOND SECTION) ─── */}
+        <section className="vj-section-panel">
+          <div className="vj-panel-header">
+            <div className="vj-panel-title-wrap">
+              <h2 className="vj-panel-title">2. Route Schedule</h2>
+              <span className="vj-count-badge">{stops.length} Stops</span>
+            </div>
+            <span className="vj-panel-sub">Review order, timing, and sequence of stops</span>
+          </div>
 
-            {loading ? (
-              <p className="vj-hint">Loading areas…</p>
-            ) : (
-              <>
-                <label className="vj-field">
-                  <span>Search areas</span>
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Tambaram, Velachery…"
-                  />
-                </label>
+          {stops.length === 0 ? (
+            <div className="vj-empty-box">
+              <h3 className="vj-empty-title">No stops scheduled yet</h3>
+              <p className="vj-empty-desc">
+                Select a location from Section 1 on the left to schedule your first stop.
+              </p>
+            </div>
+          ) : (
+            <div className="vj-stops-list">
+              {stops.map((stop, i) => (
+                <div key={stop.stationId} className="vj-stop-card">
+                  <div className="vj-stop-num">#{i + 1}</div>
 
-                <label className="vj-field">
-                  <span>Area</span>
-                  <select value={pick} onChange={(e) => setPick(e.target.value)} size={8}>
-                    {available.length === 0 ? (
-                      <option value="" disabled>No areas left</option>
-                    ) : (
-                      available.map((s) => (
-                        <option key={s.stationId} value={s.stationId}>{s.name}</option>
-                      ))
-                    )}
-                  </select>
-                </label>
+                  <div className="vj-stop-main">
+                    <div className="vj-stop-header-row">
+                      <span className="vj-stop-title">{stop.name}</span>
+                      <span className="vj-stop-dur-pill">
+                        {durationText(stop.arrivalTime, stop.departureTime)}
+                      </span>
+                    </div>
 
-                <button type="button" className="vj-add" onClick={addStop} disabled={!pick}>
-                  Add stop
-                </button>
-              </>
-            )}
-          </section>
+                    <div className="vj-time-row">
+                      <div className="vj-time-block">
+                        <label className="vj-time-label">Arrival</label>
+                        <input
+                          type="time"
+                          className="vj-time-input"
+                          value={stop.arrivalTime}
+                          onChange={(e) => updateStop(i, 'arrivalTime', e.target.value)}
+                        />
+                      </div>
 
-          <section className="vj-panel">
-            <h2 className="vj-panel-title">Before you publish</h2>
-            <p className="vj-hint">
-              Your menu decides what customers can order at these stops.
-            </p>
-            <Link to="/vendor/menu" className="vj-link">Check your menu →</Link>
-          </section>
-        </aside>
+                      <span className="vj-time-arrow" aria-hidden="true">→</span>
+
+                      <div className="vj-time-block">
+                        <label className="vj-time-label">Departure</label>
+                        <input
+                          type="time"
+                          className="vj-time-input"
+                          value={stop.departureTime}
+                          onChange={(e) => updateStop(i, 'departureTime', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="vj-stop-reorder">
+                    <button
+                      type="button"
+                      className="vj-move-btn"
+                      onClick={() => move(i, -1)}
+                      disabled={i === 0}
+                      title="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="vj-move-btn"
+                      onClick={() => move(i, 1)}
+                      disabled={i === stops.length - 1}
+                      title="Move down"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      className="vj-del-btn"
+                      onClick={() => removeStop(i)}
+                      title={`Remove ${stop.name}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {problems.length > 0 && (
+            <div className="vj-problems-card">
+              <span className="vj-problem-title">Schedule conflicts detected:</span>
+              <ul className="vj-problems-list">
+                {problems.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="vj-menu-tip">
+            <span className="vj-tip-text">Confirm your menu items before publishing your route today.</span>
+            <Link to="/vendor/menu" className="vj-tip-link">
+              Check menu items →
+            </Link>
+          </div>
+        </section>
       </div>
     </VendorLayout>
   )

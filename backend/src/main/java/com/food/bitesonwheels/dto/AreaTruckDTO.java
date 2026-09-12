@@ -7,14 +7,6 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
 
-/**
- * One truck that is scheduled to visit a given area (station) today,
- * together with the food it is carrying.
- *
- * Powers the customer flow: pick an area -> see the food coming to it.
- * Built as a DTO (not the entity) so nothing lazy is serialised and the
- * customer never sees owner / internal fields.
- */
 @Getter
 @Builder
 public class AreaTruckDTO {
@@ -24,7 +16,6 @@ public class AreaTruckDTO {
     private String    tagline;
     private String    truckStatus;
 
-    /** Schedule row for THIS area today. */
     private Long      scheduleId;
     private LocalTime arrivalTime;
     private LocalTime departureTime;

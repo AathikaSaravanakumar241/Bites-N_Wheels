@@ -3,9 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
 import { getSession } from '../../session.js'
 import './Checkout.css'
-
 const PACKING_FEE = 20
-
 function buildSlots() {
   const start = new Date(Date.now() + 45 * 60000)
   start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15, 0, 0)
@@ -17,32 +15,20 @@ function buildSlots() {
     }
   })
 }
-
 export default function Checkout() {
   const navigate = useNavigate()
   const { truck, lines, subtotal, placeOrder } = useCart()
-
   const slots = useMemo(buildSlots, [])
-
-  const [name, setName]       = useState(getSession('bnw_name'))
-  // Phone comes from the profile captured at registration; the users table
-  // has no address column, so the last one used is remembered locally instead.
-  const [phone, setPhone]     = useState(getSession('bnw_phone'))
+  const [name, setName]       = useState(getSession('bnw_name'))  const [phone, setPhone]     = useState(getSession('bnw_phone'))
   const [address, setAddress] = useState(localStorage.getItem('bnw_last_address') ?? '')
-
   const [when, setWhen]       = useState('now')
   const [slot, setSlot]       = useState(slots[0]?.value ?? '')
   const [payment, setPayment] = useState('cod')
   const [note, setNote]       = useState('')
-  const [errors, setErrors]   = useState({})
-
-  // Validation only runs on submit, so without this an error message stays
-  // pinned under a field the user has since corrected.
-  const clearError = (field) =>
+  const [errors, setErrors]   = useState({})  const clearError = (field) =>
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev))
   const [placing, setPlacing] = useState(false)
   const [apiError, setApiError] = useState('')
-
   if (!truck || lines.length === 0) {
     return (
       <div className="co">
@@ -62,9 +48,7 @@ export default function Checkout() {
       </div>
     )
   }
-
   const total = subtotal + PACKING_FEE
-
   function validate() {
     const next = {}
     if (!name.trim())                              next.name    = 'Enter the name for this order'
@@ -74,7 +58,6 @@ export default function Checkout() {
     setErrors(next)
     return Object.keys(next).length === 0
   }
-
   async function handlePlaceOrder(e) {
     e.preventDefault()
     if (!validate()) return
@@ -89,14 +72,13 @@ export default function Checkout() {
         payment,
         note: note.trim(),
       })
-      try { localStorage.setItem('bnw_last_address', address.trim()) } catch { /* storage blocked */ }
+      try { localStorage.setItem('bnw_last_address', address.trim()) } catch {  }
       navigate(`/user/order/${orderId}`)
     } catch (err) {
       setApiError(err.message || 'Failed to place order. Please try again.')
       setPlacing(false)
     }
   }
-
   return (
     <div className="co">
       <div className="co-bar">
@@ -105,16 +87,13 @@ export default function Checkout() {
           <h1 className="co-title">Checkout</h1>
         </div>
       </div>
-
       <form className="co-main" onSubmit={handlePlaceOrder} noValidate>
         <div className="co-left">
           <section className="co-panel">
             <h2 className="co-panel-title">Your details</h2>
-
             {apiError && (
               <p style={{ color: 'red', fontSize: 14, marginBottom: 12 }}>{apiError}</p>
             )}
-
             <label className="co-field">
               <span>Name</span>
               <input
@@ -125,7 +104,6 @@ export default function Checkout() {
               />
               {errors.name && <small className="co-error">{errors.name}</small>}
             </label>
-
             <label className="co-field">
               <span>Phone</span>
               <input
@@ -137,7 +115,6 @@ export default function Checkout() {
               />
               {errors.phone && <small className="co-error">{errors.phone}</small>}
             </label>
-
             <label className="co-field">
               <span>Delivery address</span>
               <textarea
@@ -149,10 +126,8 @@ export default function Checkout() {
               {errors.address && <small className="co-error">{errors.address}</small>}
             </label>
           </section>
-
           <section className="co-panel">
             <h2 className="co-panel-title">When do you want it?</h2>
-
             <label className={when === 'now' ? 'co-option is-active' : 'co-option'}>
               <input type="radio" name="when" checked={when === 'now'} onChange={() => setWhen('now')} />
               <span className="co-option-body">
@@ -160,7 +135,6 @@ export default function Checkout() {
                 <span className="co-option-sub">Ready in about {truck.etaMin} minutes</span>
               </span>
             </label>
-
             <label className={when === 'later' ? 'co-option is-active' : 'co-option'}>
               <input type="radio" name="when" checked={when === 'later'} onChange={() => setWhen('later')} />
               <span className="co-option-body">
@@ -168,7 +142,6 @@ export default function Checkout() {
                 <span className="co-option-sub">Pre-order and pick a time that suits you</span>
               </span>
             </label>
-
             {when === 'later' && (
               <div className="co-slots">
                 {slots.map((s) => (
@@ -185,10 +158,8 @@ export default function Checkout() {
               </div>
             )}
           </section>
-
           <section className="co-panel">
             <h2 className="co-panel-title">Payment</h2>
-
             <label className={payment === 'cod' ? 'co-option is-active' : 'co-option'}>
               <input type="radio" name="payment" checked={payment === 'cod'} onChange={() => setPayment('cod')} />
               <span className="co-option-body">
@@ -196,7 +167,6 @@ export default function Checkout() {
                 <span className="co-option-sub">Pay the truck when you collect</span>
               </span>
             </label>
-
             <label className="co-option is-disabled">
               <input type="radio" name="payment" disabled />
               <span className="co-option-body">
@@ -204,7 +174,6 @@ export default function Checkout() {
                 <span className="co-option-sub">Coming soon</span>
               </span>
             </label>
-
             <label className="co-field co-field-note">
               <span>Note for the truck (optional)</span>
               <input
@@ -217,15 +186,12 @@ export default function Checkout() {
             </label>
           </section>
         </div>
-
         <aside className="co-panel co-summary">
           <h2 className="co-panel-title">Order summary</h2>
-
           <div className="co-truck">
             <span className="co-truck-name">{truck.name}</span>
             <span className="co-truck-tagline">{truck.tagline}</span>
           </div>
-
           <ul className="co-lines">
             {lines.map((line) => (
               <li key={line.id}>
@@ -235,7 +201,6 @@ export default function Checkout() {
               </li>
             ))}
           </ul>
-
           <div className="co-row">
             <span>Item total</span>
             <span>₹{subtotal}</span>
@@ -248,7 +213,6 @@ export default function Checkout() {
             <span>To pay</span>
             <span>₹{total}</span>
           </div>
-
           <p className="co-when">
             {when === 'later'
               ? `Scheduled for ${slots.find((s) => s.value === slot)?.label ?? '—'}`
@@ -256,7 +220,6 @@ export default function Checkout() {
             {' · '}
             {payment === 'cod' ? 'Cash on delivery' : 'Online'}
           </p>
-
           <button type="submit" className="co-cta" disabled={placing}>
             {placing ? 'Placing order…' : `Place order · ₹${total}`}
           </button>

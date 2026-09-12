@@ -23,32 +23,21 @@ import java.util.Map;
 public class TruckController {
     private final TruckService truckService;
 
-    /** The signed-in owner's truck. */
     @GetMapping("/me")
     public ResponseEntity<Truck> getMyTruck() {
         return ResponseEntity.ok(truckService.getMyTruck());
     }
 
-    /** Update the signed-in owner's truck profile (partial patch). */
     @PutMapping("/me")
     public ResponseEntity<Truck> updateMyTruck(@RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(truckService.updateMyTruck(body));
     }
 
-    /** The "taking orders" switch. Body: {"open": true|false} */
     @PatchMapping("/me/status")
     public ResponseEntity<Truck> setOpen(@RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(
                 truckService.setOpen(Boolean.parseBoolean(String.valueOf(body.get("open")))));
-    }
-
-
-    // ---- request-body readers -------------------------------------------
-    // The menu form sends `null` for fields the owner left blank (notably
-    // stockQuantity), so reading them with .toString() threw a 500. These
-    // keep a blank optional field blank and give a clear 400-style message
-    // for a genuinely missing required one.
-
+    }
     private static String reqStr(Map<String, Object> body, String key) {
         Object v = body.get(key);
         if (v == null || String.valueOf(v).isBlank())

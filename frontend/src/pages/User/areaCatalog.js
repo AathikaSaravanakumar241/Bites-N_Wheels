@@ -1,19 +1,5 @@
 import { get } from '../../api.js'
 import { slugify, iconFor } from './catalog.js'
-
-/* ---------------------------------------------------------------
-   AREA CATALOG
-
-   One request per area: GET /api/v1/stations/{id}/trucks returns every
-   truck scheduled at that area TODAY with the food it is carrying, so
-   the customer home page is a single round trip.
-
-   Everything the customer sees is scoped to the chosen area - that is
-   the whole point of the flow. A truck that is not visiting your area
-   today should never appear, no matter what it sells.
-   --------------------------------------------------------------- */
-
-/** "09:00:00" -> "9:00 AM". Backend sends LocalTime. */
 export function formatTime(t) {
   if (!t) return ''
   const [h, m] = String(t).split(':')
@@ -23,8 +9,6 @@ export function formatTime(t) {
   const display = hour % 12 === 0 ? 12 : hour % 12
   return `${display}:${m ?? '00'} ${suffix}`
 }
-
-/** Has this truck already left the area? */
 export function windowState(arrival, departure) {
   const now = new Date()
   const mins = now.getHours() * 60 + now.getMinutes()
@@ -40,16 +24,9 @@ export function windowState(arrival, departure) {
   if (mins >= a) return 'here'
   return 'upcoming'
 }
-
-/**
- * Loads everything for one area.
- * Returns { trucks, items, categories } where every item carries the
- * truck and arrival details needed to render it.
- */
 export async function fetchAreaCatalog(stationId) {
   const raw = await get(`/api/v1/stations/${stationId}/trucks`, false)
   const rows = Array.isArray(raw) ? raw : []
-
   const trucks = rows.map((r) => ({
     id: r.truckId,
     name: r.truckName,
@@ -62,7 +39,6 @@ export async function fetchAreaCatalog(stationId) {
     state: windowState(r.arrivalTime, r.departureTime),
     items: [],
   }))
-
   const items = []
   rows.forEach((r, idx) => {
     const truck = trucks[idx]
@@ -89,10 +65,7 @@ export async function fetchAreaCatalog(stationId) {
       items.push(item)
       return item
     })
-  })
-
-  // Categories that actually have food arriving in this area.
-  const counts = new Map()
+  })  const counts = new Map()
   items.forEach((i) => {
     if (!i.category) return
     const entry = counts.get(i.category) ?? { id: i.category, label: i.tag, count: 0 }
@@ -102,14 +75,8 @@ export async function fetchAreaCatalog(stationId) {
   const categories = [...counts.values()]
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
     .map((c) => ({ ...c, icon: iconFor(c.id) }))
-
   return { trucks, items, categories }
 }
-
-/**
- * The same dish is sold by several trucks, so the home page lists each
- * dish ONCE and records how many trucks bring it. Cheapest first.
- */
 export function groupByDish(items) {
   const byName = new Map()
   items.forEach((i) => {

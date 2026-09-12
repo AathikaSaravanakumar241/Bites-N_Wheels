@@ -4,13 +4,9 @@ import { useCart } from './CartContext.jsx'
 import { useArea } from './useArea.js'
 import { iconFor } from './catalog.js'
 import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
+import { IconShoppingBag, IconArrowLeft, IconClock, IconTruck } from '../../icons.jsx'
 import './Category.css'
 
-/**
- * One category (Pizza, South Indian, ...) within the selected area.
- * Left: trucks bringing that category here today, soonest first.
- * Right: the dishes themselves - click one to see every truck selling it.
- */
 export default function CategoryPage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
@@ -37,7 +33,6 @@ export default function CategoryPage() {
   const category = categories.find((c) => c.id === categoryId)
     ?? { id: categoryId, label: categoryId, icon: iconFor(categoryId) }
 
-  // Trucks bringing this category to the area, soonest arrival first.
   const trucksWithCategory = useMemo(() => {
     return trucks
       .filter((t) => t.items.some((i) => i.category === categoryId && i.available))
@@ -68,7 +63,7 @@ export default function CategoryPage() {
     return (
       <div className="cp">
         <div className="cp-bar"><div className="cp-bar-inner">
-          <Link to="/user" className="cp-back">← Home</Link>
+          <Link to="/user" className="cp-back"><IconArrowLeft size={14} /> Home</Link>
         </div></div>
         <p className="cp-empty">Pick your area first.</p>
       </div>
@@ -90,6 +85,7 @@ export default function CategoryPage() {
         <span className="cp-dish-foot">
           <span className="cp-price">from ₹{dish.minPrice}</span>
           <span className="cp-dish-trucks">
+            <IconTruck size={11} />
             {dish.truckCount} truck{dish.truckCount === 1 ? '' : 's'}
           </span>
         </span>
@@ -101,9 +97,11 @@ export default function CategoryPage() {
     <div className="cp">
       <div className="cp-bar">
         <div className="cp-bar-inner">
-          <Link to="/user" className="cp-back">← All categories</Link>
+          <Link to="/user" className="cp-back">
+            <IconArrowLeft size={14} /> All categories
+          </Link>
           <h1 className="cp-title">
-            <span aria-hidden="true">{category.icon}</span>
+            <span className="cp-title-icon" aria-hidden="true">{category.icon}</span>
             {category.label}
           </h1>
           <span className="cp-sub">
@@ -112,7 +110,8 @@ export default function CategoryPage() {
           </span>
           {count > 0 && (
             <button type="button" className="cp-cart" onClick={() => navigate('/user/cart')}>
-              🛒 {count} · View cart
+              <IconShoppingBag size={15} />
+              {count} · View cart
             </button>
           )}
         </div>
@@ -134,7 +133,9 @@ export default function CategoryPage() {
           </button>
 
           {loading ? (
-            <p className="cp-side-note">Loading trucks…</p>
+            <div className="cp-truck-skeletons">
+              {[...Array(3)].map((_, i) => <div key={i} className="cp-truck-skeleton" />)}
+            </div>
           ) : trucksWithCategory.length === 0 ? (
             <p className="cp-side-note">No truck brings this here today.</p>
           ) : (
@@ -151,6 +152,7 @@ export default function CategoryPage() {
                 </span>
                 <span className="cp-truck-tagline">{truck.tagline}</span>
                 <span className="cp-truck-meta">
+                  <IconClock size={11} />
                   <span className="cp-eta">{formatTime(truck.arrivalTime)}</span>
                   <span>– {formatTime(truck.departureTime)}</span>
                   <span>· {truck.matchCount} option{truck.matchCount === 1 ? '' : 's'}</span>
@@ -179,7 +181,9 @@ export default function CategoryPage() {
           )}
 
           {loading ? (
-            <p className="cp-empty">Loading…</p>
+            <div className="cp-dishes">
+              {[...Array(4)].map((_, i) => <div key={i} className="cp-dish-skeleton" />)}
+            </div>
           ) : dishes.length === 0 ? (
             <p className="cp-empty">
               No {category.label.toLowerCase()} coming to {area.name} today.

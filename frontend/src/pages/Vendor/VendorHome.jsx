@@ -3,16 +3,13 @@ import { Link } from 'react-router-dom'
 import VendorLayout from './VendorLayout.jsx'
 import { useVendorStatus } from './useVendorStatus.jsx'
 import './VendorHome.css'
-
 import { get as apiGet, describeError } from '../../api.js'
-const ORDERS_URL = '/api/v1/truck/orders'
 
+const ORDERS_URL = '/api/v1/truck/orders'
 const OPEN_STATUSES = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
 
-// The orders API sends customerName directly; order.user is @JsonIgnore'd on
-// the entity and was always undefined, so every order read as "Guest".
 function customerName(order) {
-  return order?.customerName || 'Walk-in'
+  return order?.customerName || 'Walk-in Customer'
 }
 
 function itemSummary(items) {
@@ -21,7 +18,7 @@ function itemSummary(items) {
     .map((i) => {
       const name = i?.name || i?.itemName || i?.menuItem?.name || 'Item'
       const qty = i?.quantity ?? i?.qty ?? 1
-      return `${qty}x ${name}`
+      return `${qty}× ${name}`
     })
     .join(', ')
 }
@@ -40,15 +37,14 @@ function isToday(value) {
 
 export default function VendorHome() {
   const { profile, isOpen } = useVendorStatus()
-
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('ALL')
 
   const getOrders = useCallback(() => {
     setLoading(true)
     setError('')
-
     apiGet(ORDERS_URL)
       .then((data) => setOrders(Array.isArray(data) ? data : []))
       .catch((err) => setError(describeError(err, 'Unable to load orders.')))
@@ -61,32 +57,38 @@ export default function VendorHome() {
 
   const stats = useMemo(() => {
     const by = (status) => orders.filter((o) => o.status === status).length
-    const revenue = orders
-      .filter((o) => o.status === 'COMPLETED' && isToday(o.createdAt))
-      .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
-
+    const completedOrders = orders.filter((o) => o.status === 'COMPLETED' && isToday(o.createdAt))
+    const revenue = completedOrders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
     return {
       pending: by('PENDING'),
       preparing: by('PREPARING'),
       ready: by('READY'),
+      completedCount: completedOrders.length,
       revenue,
     }
   }, [orders])
 
-  // Newest first, only orders still in play.
   const liveOrders = useMemo(
     () =>
       orders
         .filter((o) => OPEN_STATUSES.includes(o.status))
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .slice(0, 5),
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
     [orders],
   )
+
+  const filteredOrders = useMemo(() => {
+    if (activeTab === 'ALL') return liveOrders
+    return liveOrders.filter((o) => o.status === activeTab)
+  }, [liveOrders, activeTab])
+
+  const truckSub = profile.parkedAt
+    ? `${profile.truckName || 'Food Truck'} · ${profile.parkedAt}`
+    : (profile.truckName || 'Food Truck')
 
   return (
     <VendorLayout
       title="Dashboard"
-      subtitle={`${profile.truckName} · parked at ${profile.parkedAt}`}
+      subtitle={truckSub}
       actions={
         <button type="button" className="vh-refresh" onClick={getOrders} disabled={loading}>
           {loading ? 'Refreshing…' : 'Refresh'}
@@ -95,105 +97,148 @@ export default function VendorHome() {
     >
       {error && <div className="vh-error">{error}</div>}
 
-      {/* ---------------- STATS ---------------- */}
-      <section className="vh-stats">
-        <div className="vh-stat">
-          <span className="vh-stat-label">Awaiting accept</span>
-          <span className={stats.pending > 0 ? 'vh-stat-value is-alert' : 'vh-stat-value'}>
-            {stats.pending}
-          </span>
+      {/* ─── SECTION 1: METRICS (MINIMALIST) ─── */}
+      <section className="vh-section">
+        <div className="vh-section-header">
+          <h2 className="vh-section-title">Overview</h2>
+          <span className="vh-section-meta">Today</span>
         </div>
-        <div className="vh-stat">
-          <span className="vh-stat-label">Preparing</span>
-          <span className="vh-stat-value">{stats.preparing}</span>
-        </div>
-        <div className="vh-stat">
-          <span className="vh-stat-label">Ready for pickup</span>
-          <span className="vh-stat-value">{stats.ready}</span>
-        </div>
-        <div className="vh-stat">
-          <span className="vh-stat-label">Completed today</span>
-          <span className="vh-stat-value">₹{stats.revenue}</span>
+
+        <div className="vh-stats-grid">
+          <div className="vh-stat-card">
+            <span className="vh-stat-label">Total Revenue</span>
+            <span className="vh-stat-value">₹{stats.revenue.toLocaleString('en-IN')}</span>
+          </div>
+
+          <div className="vh-stat-card">
+            <span className="vh-stat-label">Completed Orders</span>
+            <span className="vh-stat-value">{stats.completedCount}</span>
+          </div>
+
+          <div className="vh-stat-card">
+            <span className="vh-stat-label">Active Tickets</span>
+            <span className="vh-stat-value">{liveOrders.length}</span>
+          </div>
+
+          <div className="vh-stat-card">
+            <span className="vh-stat-label">Status</span>
+            <span className="vh-stat-value vh-status-text">{isOpen ? 'Open' : 'Closed'}</span>
+          </div>
         </div>
       </section>
 
-      <div className="vh-grid">
-        {/* ---------------- LIVE QUEUE ---------------- */}
-        <section className="vh-panel">
-          <div className="vh-panel-head">
-            <h2 className="vh-panel-title">Live orders</h2>
-            <Link to="/vendor/orders" className="vh-link">Manage all →</Link>
+      {/* ─── SECTION 2: LIVE ORDERS (MINIMALIST) ─── */}
+      <section className="vh-section">
+        <div className="vh-section-header">
+          <div className="vh-section-title-wrap">
+            <h2 className="vh-section-title">Live Orders</h2>
+            <span className="vh-count-pill">{liveOrders.length}</span>
           </div>
 
+          <div className="vh-pipeline-tabs">
+            <button
+              type="button"
+              className={`vh-tab ${activeTab === 'ALL' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('ALL')}
+            >
+              All ({liveOrders.length})
+            </button>
+            <button
+              type="button"
+              className={`vh-tab ${activeTab === 'PENDING' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('PENDING')}
+            >
+              Awaiting ({stats.pending})
+            </button>
+            <button
+              type="button"
+              className={`vh-tab ${activeTab === 'PREPARING' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('PREPARING')}
+            >
+              Kitchen ({stats.preparing})
+            </button>
+            <button
+              type="button"
+              className={`vh-tab ${activeTab === 'READY' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('READY')}
+            >
+              Ready ({stats.ready})
+            </button>
+          </div>
+        </div>
+
+        <div className="vh-orders-container">
           {loading ? (
-            <p className="vh-muted">Loading orders…</p>
-          ) : liveOrders.length === 0 ? (
-            <p className="vh-empty">
-              {error
-                ? 'Orders could not be loaded.'
-                : 'No open orders right now.'}
-            </p>
+            <div className="vh-loading-wrap">
+              <p className="vh-muted">Loading orders…</p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="vh-empty-state">
+              <h3 className="vh-empty-title">
+                {activeTab === 'ALL' ? 'No active orders' : `No orders in ${activeTab.toLowerCase()}`}
+              </h3>
+              <p className="vh-empty-desc">New orders will appear here automatically.</p>
+              <Link to="/vendor/orders" className="vh-empty-cta">
+                View All Orders
+              </Link>
+            </div>
           ) : (
-            <ul className="vh-orders">
-              {liveOrders.map((order) => (
-                <li key={order.orderId} className="vh-order">
-                  <div className="vh-order-main">
+            <div className="vh-orders-grid">
+              {filteredOrders.map((order) => (
+                <div key={order.orderId} className="vh-order-card">
+                  <div className="vh-order-card-head">
                     <span className="vh-order-id">#{order.orderId}</span>
                     <span className="vh-order-customer">{customerName(order)}</span>
-                    <span className="vh-order-items">{itemSummary(order.items)}</span>
+                    <span className="vh-order-status">{order.status}</span>
                   </div>
-                  <div className="vh-order-side">
-                    <span className={`vh-pill is-${String(order.status).toLowerCase()}`}>
-                      {order.status}
-                    </span>
+
+                  <div className="vh-order-card-body">
+                    <p className="vh-order-items-text">{itemSummary(order.items)}</p>
+                  </div>
+
+                  <div className="vh-order-card-foot">
                     <span className="vh-order-total">₹{order.totalAmount ?? 0}</span>
-                    {order.scheduleType === 'SCHEDULED' && order.scheduledTime && (
-                      <span className="vh-pre">Pre-order</span>
-                    )}
+                    <Link to="/vendor/orders" className="vh-order-action-btn">
+                      Manage →
+                    </Link>
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
-          )}
-        </section>
-
-        {/* ---------------- SIDE ---------------- */}
-        <aside className="vh-side">
-          <section className="vh-panel">
-            <h2 className="vh-panel-title">Today</h2>
-            <dl className="vh-facts">
-              <div>
-                <dt>Status</dt>
-                <dd className={isOpen ? 'vh-open' : 'vh-closed'}>
-                  {isOpen ? 'Taking orders' : 'Closed'}
-                </dd>
-              </div>
-              <div>
-                <dt>Hours</dt>
-                <dd>{profile.opensAt} – {profile.closesAt}</dd>
-              </div>
-              <div>
-                <dt>Cuisine</dt>
-                <dd>{profile.cuisine}</dd>
-              </div>
-              <div>
-                <dt>Spice</dt>
-                <dd>{profile.spice}</dd>
-              </div>
-            </dl>
-            <Link to="/vendor/profile" className="vh-link">Edit profile →</Link>
-          </section>
-
-          <section className="vh-panel">
-            <h2 className="vh-panel-title">Quick actions</h2>
-            <div className="vh-quick">
-              <Link to="/vendor/orders" className="vh-quick-btn">Order queue</Link>
-              <Link to="/vendor/menu" className="vh-quick-btn">Edit menu</Link>
-              <Link to="/vendor/billing" className="vh-quick-btn">Walk-in bill</Link>
             </div>
-          </section>
-        </aside>
-      </div>
+          )}
+        </div>
+      </section>
+
+      {/* ─── SECTION 3: TRUCK DETAILS ─── */}
+      <section className="vh-section">
+        <div className="vh-section-header">
+          <h2 className="vh-section-title">Truck Details</h2>
+          <Link to="/vendor/profile" className="vh-card-action-link">
+            Edit Details →
+          </Link>
+        </div>
+
+        <div className="vh-ops-card">
+          <dl className="vh-facts">
+            <div className="vh-fact-row">
+              <dt>Status</dt>
+              <dd>{isOpen ? 'Taking Orders' : 'Closed'}</dd>
+            </div>
+            <div className="vh-fact-row">
+              <dt>Operating Hours</dt>
+              <dd>{profile.opensAt || '10:00'} – {profile.closesAt || '22:00'}</dd>
+            </div>
+            <div className="vh-fact-row">
+              <dt>Cuisine</dt>
+              <dd>{profile.cuisine || 'Street Food'}</dd>
+            </div>
+            <div className="vh-fact-row">
+              <dt>Spice Level</dt>
+              <dd>{profile.spice || 'Medium'}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
     </VendorLayout>
   )
 }

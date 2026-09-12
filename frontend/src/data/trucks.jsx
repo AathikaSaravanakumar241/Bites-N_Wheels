@@ -1,8 +1,3 @@
-/* ---------------------------------------------------------------
-   Single source of truth for mock trucks + their menus.
-   UserHome and CategoryPage both read from here, so there is only
-   one copy to delete when the real /api/trucks endpoint lands.
-   --------------------------------------------------------------- */
 
 export const CATEGORIES = [
   { id: 'pizza',    label: 'Pizza',     icon: '🍕' },
@@ -16,10 +11,8 @@ export const CATEGORIES = [
   { id: 'desserts', label: 'Desserts',  icon: '🍩' },
   { id: 'icecream', label: 'Ice Cream', icon: '🍦' },
 ]
-
 export const CUISINES = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
 export const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
-
 export const TRUCKS = [
   {
     id: 1,
