@@ -1,6 +1,4 @@
 import { get } from '../../api.js'
-
-
 export function slugify(tag) {
   return String(tag ?? '')
     .toLowerCase()
@@ -9,7 +7,6 @@ export function slugify(tag) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
-
 const ICONS = {
   'pizza':           '🍕',
   'biryani':         '🍛',
@@ -28,17 +25,14 @@ const ICONS = {
   'ice-cream':       '🍦',
   'tacos':           '🌮',
 }
-
 export function iconFor(slug) {
   return ICONS[slug] ?? '🍽️'
 }
-
 export async function fetchCatalog() {
   const [trucksRaw, grouped] = await Promise.all([
     get('/api/v1/trucks', false),
     get('/api/v1/foods/search?q=', false),
   ])
-
   const trucks = (Array.isArray(trucksRaw) ? trucksRaw : [])
     .filter((t) => t.status !== 'INACTIVE')
     .map((t) => ({
@@ -50,11 +44,9 @@ export async function fetchCatalog() {
       etaMin: 20,
     }))  const byName = new Map(trucks.map((t) => [t.name, t]))
   const items = []
-
   Object.entries(grouped ?? {}).forEach(([truckName, list]) => {
     const truck = byName.get(truckName)
     if (!truck || !Array.isArray(list)) return
-
     list.forEach((i) => {
       if (i.available === false) return
       items.push({
@@ -84,11 +76,8 @@ export async function fetchCatalog() {
     entry.count += 1
     counts.set(i.category, entry)
   })
-
   const categories = [...counts.values()]
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
     .map((c) => ({ ...c, icon: iconFor(c.id) }))
-
   return { trucks, items, categories }
 }
-

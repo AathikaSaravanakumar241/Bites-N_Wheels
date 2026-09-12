@@ -3,7 +3,10 @@ import TruckMenu from './TruckMenu.jsx'
 
 export default function VendorMenuPage() {
   return (
-    <VendorLayout>
+    <VendorLayout
+      title="Menu Management"
+      subtitle="Organize categories, create food items, and manage live stock availability"
+    >
       <TruckMenu />
     </VendorLayout>
   )

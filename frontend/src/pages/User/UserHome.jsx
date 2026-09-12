@@ -7,6 +7,68 @@ import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
 import logo from '../../assets/logo.jpeg'
 import './UserHome.css'
 
+const IconMapPin = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M20 10c0 6-8 13-8 13S4 16 4 10a8 8 0 1 1 16 0Z"/>
+    <circle cx="12" cy="10" r="3"/>
+  </svg>
+)
+
+const IconChevronDown = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="m6 9 6 6 6-6"/>
+  </svg>
+)
+
+const IconSearch = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="8"/>
+    <path d="m21 21-4.35-4.35"/>
+  </svg>
+)
+
+const IconShoppingBag = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+    <line x1="3" x2="21" y1="6" y2="6"/>
+    <path d="M16 10a4 4 0 0 1-8 0"/>
+  </svg>
+)
+
+const IconUser = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/>
+  </svg>
+)
+
+const IconTruck = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+    <rect x="9" y="11" width="14" height="10" rx="2"/>
+    <circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+  </svg>
+)
+
+const IconClock = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+  </svg>
+)
+
+const IconTag = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42Z"/>
+    <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/>
+  </svg>
+)
+
+const IconSparkle = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/>
+  </svg>
+)
+
 const PROMOS = [
   { id: 1, tag: 'New user',   title: '50% off your first order', text: 'Use code FIRST50 at any truck near you.' },
   { id: 2, tag: 'Today only', title: 'Free delivery till 9 PM',  text: 'On every pre-order placed before 6 PM today.' },
@@ -28,7 +90,9 @@ export default function UserHome() {
   const [query, setQuery] = useState('')
   const [activeCategories, setActiveCategories] = useState([])
   const [vegOnly, setVegOnly] = useState(false)
-  const [promoIndex, setPromoIndex] = useState(0)  useEffect(() => {
+  const [promoIndex, setPromoIndex] = useState(0)
+
+  useEffect(() => {
     if (!area) return
     setLoading(true)
     setError('')
@@ -57,7 +121,9 @@ export default function UserHome() {
   function clearFilters() {
     setActiveCategories([])
     setVegOnly(false)
-  }  const dishes = useMemo(() => {
+  }
+
+  const dishes = useMemo(() => {
     const filtered = items.filter((i) => {
       if (!i.available) return false
       if (activeCategories.length && !activeCategories.includes(i.category)) return false
@@ -72,12 +138,15 @@ export default function UserHome() {
   }, [items, activeCategories, vegOnly, query])
 
   const promo = PROMOS[promoIndex]
-  const filterCount = activeCategories.length + (vegOnly ? 1 : 0)  if (!area) return <AreaPicker />
+  const filterCount = activeCategories.length + (vegOnly ? 1 : 0)
+
+  if (!area) return <AreaPicker />
 
   return (
     <div className="uh">
       {pickerOpen && <AreaPicker onClose={() => setPickerOpen(false)} />}
 
+      {}
       <header className="uh-header">
         <div className="uh-header-inner">
           <Link to="/user" className="uh-brand">
@@ -86,13 +155,13 @@ export default function UserHome() {
           </Link>
 
           <button type="button" className="uh-location" onClick={() => setPickerOpen(true)}>
-            <span aria-hidden="true">📍</span>
+            <IconMapPin />
             <span className="uh-location-text">{area.name}</span>
-            <span className="uh-caret" aria-hidden="true">▾</span>
+            <IconChevronDown />
           </button>
 
           <div className="uh-search">
-            <span className="uh-search-icon" aria-hidden="true">🔍</span>
+            <IconSearch />
             <input
               type="search"
               value={query}
@@ -104,7 +173,7 @@ export default function UserHome() {
 
           <div className="uh-actions">
             <button type="button" className="uh-cart" onClick={() => navigate('/user/cart')}>
-              <span aria-hidden="true">🛒</span>
+              <IconShoppingBag />
               <span className="uh-cart-text">My items</span>
               {cartCount > 0 && <span className="uh-badge">{cartCount}</span>}
             </button>
@@ -115,21 +184,24 @@ export default function UserHome() {
               aria-label="Your profile"
               onClick={() => navigate('/user/profile')}
             >
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <circle cx="12" cy="8" r="4" fill="currentColor" />
-                <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"
-                      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <IconUser />
             </button>
           </div>
         </div>
       </header>
 
+      {}
       <section className="uh-promo" aria-live="polite">
         <div className="uh-promo-card">
-          <span className="uh-promo-tag">{promo.tag}</span>
-          <h2>{promo.title}</h2>
-          <p>{promo.text}</p>
+          <div className="uh-promo-content">
+            <span className="uh-promo-tag">
+              <IconSparkle />
+              {promo.tag}
+            </span>
+            <h2>{promo.title}</h2>
+            <p>{promo.text}</p>
+          </div>
+          <div className="uh-promo-visual" aria-hidden="true" />
         </div>
         <div className="uh-promo-dots">
           {PROMOS.map((p, i) => (
@@ -144,7 +216,9 @@ export default function UserHome() {
         </div>
       </section>
 
+      {}
       <div className="uh-main">
+        {}
         <aside className="uh-filters">
           <div className="uh-filters-head">
             <h3>Filters</h3>
@@ -182,7 +256,10 @@ export default function UserHome() {
           </fieldset>
 
           <div className="uh-trucks-today">
-            <h3 className="uh-side-h">Trucks in {area.name}</h3>
+            <h3 className="uh-side-h">
+              <IconTruck />
+              Trucks in {area.name}
+            </h3>
             {trucks.length === 0 ? (
               <p className="uh-dim">None scheduled today.</p>
             ) : (
@@ -190,6 +267,7 @@ export default function UserHome() {
                 <div key={t.scheduleId ?? t.id} className="uh-mini-truck">
                   <span className="uh-mini-name">{t.name}</span>
                   <span className="uh-mini-time">
+                    <IconClock />
                     {formatTime(t.arrivalTime)} – {formatTime(t.departureTime)}
                   </span>
                   <span className={`uh-state is-${t.state}`}>
@@ -201,7 +279,9 @@ export default function UserHome() {
           </div>
         </aside>
 
+        {}
         <main className="uh-content">
+          {}
           <section>
             <h2 className="uh-section-title">What are you craving?</h2>
             {categories.length === 0 ? (
@@ -214,7 +294,7 @@ export default function UserHome() {
                   <button
                     key={cat.id}
                     type="button"
-                    className="uh-category"
+                    className={`uh-category${activeCategories.includes(cat.id) ? ' is-active' : ''}`}
                     onClick={() => navigate(`/user/category/${cat.id}`)}
                   >
                     <span className="uh-category-icon" aria-hidden="true">{cat.icon}</span>
@@ -225,6 +305,7 @@ export default function UserHome() {
             )}
           </section>
 
+          {}
           <section>
             <h2 className="uh-section-title">
               Coming to {area.name} today
@@ -234,7 +315,11 @@ export default function UserHome() {
             {error && <p className="uh-empty">{error}</p>}
 
             {loading ? (
-              <p className="uh-empty">Loading food…</p>
+              <div className="uh-dishes">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="uh-dish-skeleton" />
+                ))}
+              </div>
             ) : dishes.length === 0 ? (
               <p className="uh-empty">
                 {items.length === 0
@@ -258,10 +343,14 @@ export default function UserHome() {
                     <span className="uh-dish-foot">
                       <span className="uh-dish-price">from ₹{dish.minPrice}</span>
                       <span className="uh-dish-trucks">
+                        <IconTruck />
                         {dish.truckCount} truck{dish.truckCount === 1 ? '' : 's'}
                       </span>
                     </span>
-                    <span className="uh-dish-eta">First arrival {formatTime(dish.earliest)}</span>
+                    <span className="uh-dish-eta">
+                      <IconClock />
+                      First arrival {formatTime(dish.earliest)}
+                    </span>
                   </button>
                 ))}
               </div>

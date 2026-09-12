@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { get as apiGet, put as apiPut, patch as apiPatch } from '../../api.js'
 import { getSession, setSession } from '../../session.js'
-
-
 const CACHE_KEY = 'bnw_vendor_profile'
 const EVENT = 'bnw-vendor-change'
-
 export const DEFAULT_PROFILE = {
   truckName: '',
   tagline: '',
@@ -17,7 +14,6 @@ export const DEFAULT_PROFILE = {
   opensAt: '16:00',
   closesAt: '23:00',
 }
-
 function fromTruck(truck) {
   return {
     truckName: truck.name ?? '',
@@ -30,7 +26,6 @@ function fromTruck(truck) {
     closesAt: (truck.closesAt ?? DEFAULT_PROFILE.closesAt).slice(0, 5),
   }
 }
-
 function toBody(profile) {
   return {
     name: profile.truckName,
@@ -44,7 +39,6 @@ function toBody(profile) {
     closesAt: profile.closesAt,
   }
 }
-
 function readCache() {
   try {
     const raw = getSession(CACHE_KEY)
@@ -53,14 +47,12 @@ function readCache() {
     return {}
   }
 }
-
 function writeCache(value) {
   try {
     setSession(CACHE_KEY, JSON.stringify(value))
   } catch {
   }  setTimeout(() => window.dispatchEvent(new Event(EVENT)), 0)
 }
-
 export function useVendorStatus() {
   const [profile, setProfileState] = useState(() => ({ ...DEFAULT_PROFILE, ...readCache() }))
   const [isOpen, setIsOpenState] = useState(true)
@@ -90,11 +82,9 @@ export function useVendorStatus() {
       window.removeEventListener('storage', sync)
     }
   }, [])
-
   const setProfile = useCallback(async (next) => {    const current = profileRef.current
     const merged = typeof next === 'function' ? next(current) : { ...current, ...next }    setProfileState(merged)
     writeCache(merged)
-
     const saved = await apiPut('/api/v1/truck/me', toBody(merged))
     if (saved) {
       const fresh = fromTruck(saved)
@@ -103,13 +93,11 @@ export function useVendorStatus() {
     }
     return saved
   }, [])
-
   const setIsOpen = useCallback(async (value) => {
     setIsOpenState(value)
     const saved = await apiPatch('/api/v1/truck/me/status', { open: value })
     if (saved) setIsOpenState(saved.status !== 'INACTIVE')
     return saved
   }, [])
-
   return { profile, setProfile, isOpen, setIsOpen, loading }
 }

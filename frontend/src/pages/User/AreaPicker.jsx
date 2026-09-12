@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchStations, useArea } from './useArea.js'
 import { describeError } from '../../api.js'
+import { IconSearch, IconMapPin, IconX, IconCheck } from '../../icons.jsx'
 import './AreaPicker.css'
 
 export default function AreaPicker({ onClose }) {
@@ -40,13 +41,13 @@ export default function AreaPicker({ onClose }) {
           </div>
           {area && (
             <button type="button" className="ap-close" onClick={onClose} aria-label="Close">
-              ✕
+              <IconX size={16} />
             </button>
           )}
         </div>
 
         <div className="ap-search">
-          <span aria-hidden="true">🔍</span>
+          <IconSearch size={15} />
           <input
             type="search"
             value={query}
@@ -60,9 +61,11 @@ export default function AreaPicker({ onClose }) {
         {error && <p className="ap-error">{error}</p>}
 
         {loading ? (
-          <p className="ap-muted">Loading areas…</p>
+          <div className="ap-skeletons">
+            {[...Array(5)].map((_, i) => <div key={i} className="ap-skeleton" />)}
+          </div>
         ) : shown.length === 0 ? (
-          <p className="ap-muted">No area matches “{query}”.</p>
+          <p className="ap-muted">No area matches "{query}".</p>
         ) : (
           <ul className="ap-list">
             {shown.map((s) => (
@@ -72,9 +75,13 @@ export default function AreaPicker({ onClose }) {
                   className={area?.id === s.stationId ? 'ap-item is-active' : 'ap-item'}
                   onClick={() => choose(s)}
                 >
-                  <span aria-hidden="true">📍</span>
-                  {s.name}
-                  {area?.id === s.stationId && <span className="ap-current">Current</span>}
+                  <IconMapPin size={14} />
+                  <span className="ap-item-name">{s.name}</span>
+                  {area?.id === s.stationId && (
+                    <span className="ap-current">
+                      <IconCheck size={12} /> Current
+                    </span>
+                  )}
                 </button>
               </li>
             ))}

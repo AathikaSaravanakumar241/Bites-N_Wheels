@@ -3,28 +3,22 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { get as apiGet } from '../../api.js'
 import { useCart } from './CartContext.jsx'
 import './OrderPlaced.css'
-
-
 export default function OrderPlaced() {
   const { orderId } = useParams()
   const navigate = useNavigate()
   const { getOrder } = useCart()
-
   const local = getOrder(orderId)
   const [fetched, setFetched] = useState(null)
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     let cancelled = false
     apiGet(`/api/v1/orders/${orderId}`)
       .then((data) => { if (!cancelled) setFetched(data) })
-      .catch(() => { /* keep the local copy */ })
+      .catch(() => {  })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [orderId])
-
   const order = fetched ?? local
-
   if (loading && !order) {
     return (
       <div className="op">
@@ -34,7 +28,6 @@ export default function OrderPlaced() {
       </div>
     )
   }
-
   if (!order) {
     return (
       <div className="op">
@@ -46,7 +39,6 @@ export default function OrderPlaced() {
       </div>
     )
   }
-
   const lines = Array.isArray(order.items)
     ? order.items.map((i) => ({ name: i.name, qty: i.quantity, price: i.priceAtOrder }))
     : Array.isArray(order.lines) ? order.lines : []
@@ -54,7 +46,6 @@ export default function OrderPlaced() {
   const itemCount = lines.reduce((sum, l) => sum + (l.qty ?? 0), 0)
   const truckName = order.truckName ?? local?.truckName ?? 'Your truck'
   const total = order.totalAmount ?? order.total ?? 0
-
   return (
     <div className="op">
       <div className="op-card">
@@ -65,17 +56,14 @@ export default function OrderPlaced() {
                   strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-
         <h1 className="op-title">Order placed</h1>
         <p className="op-sub">
           {truckName} has your order. You'll get a call if anything changes.
         </p>
-
         <div className="op-id">
           <span>Order ID</span>
           <strong>{order.orderId ?? order.id}</strong>
         </div>
-
         <dl className="op-facts">
           <div>
             <dt>Truck</dt>
@@ -98,14 +86,12 @@ export default function OrderPlaced() {
             <dd className="op-total">₹{total}</dd>
           </div>
         </dl>
-
         {schedule.type === 'later' && (
           <p className="op-pre">
             This is a pre-order. The truck starts cooking closer to your slot,
             so it's fresh when you collect it.
           </p>
         )}
-
         <button
           type="button"
           className="op-cta"
@@ -113,7 +99,6 @@ export default function OrderPlaced() {
         >
           Track order
         </button>
-
         <Link to="/user" className="op-secondary">Back to home</Link>
       </div>
     </div>

@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { get as apiGet } from '../../api.js'
+import { IconArrowLeft, IconTruck, IconLoader, IconChevronRight } from '../../icons.jsx'
 import './UserOrders.css'
 
 const LIVE = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
 
 const STATUS_LABEL = {
-  PENDING: 'Waiting for the truck',
-  ACCEPTED: 'Accepted',
+  PENDING:   'Waiting for the truck',
+  ACCEPTED:  'Accepted',
   PREPARING: 'Being prepared',
-  READY: 'Ready for pickup',
+  READY:     'Ready for pickup',
   COMPLETED: 'Completed',
-  REJECTED: 'Rejected',
+  REJECTED:  'Rejected',
   CANCELLED: 'Cancelled',
 }
 
@@ -20,18 +21,15 @@ function formatWhen(iso) {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   return d.toLocaleString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
+    day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
   })
 }
 
 export default function UserOrders() {
   const navigate = useNavigate()
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders]   = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError]     = useState('')
 
   useEffect(() => {
     apiGet('/api/v1/orders')
@@ -44,18 +42,24 @@ export default function UserOrders() {
     <div className="uo">
       <div className="uo-bar">
         <div className="uo-bar-inner">
-          <Link to="/user" className="uo-back">← Keep browsing</Link>
+          <Link to="/user" className="uo-back"><IconArrowLeft size={14} /> Keep browsing</Link>
           <h1 className="uo-title">Your orders</h1>
         </div>
       </div>
 
       <main className="uo-main">
-        {loading && <p className="uo-empty">Loading your orders…</p>}
+        {loading && (
+          <div className="uo-loading">
+            <IconLoader size={24} />
+            <p>Loading your orders…</p>
+          </div>
+        )}
 
         {!loading && error && <p className="uo-error">{error}</p>}
 
         {!loading && !error && orders.length === 0 && (
           <div className="uo-empty-wrap">
+            <div className="uo-empty-icon"><IconTruck size={48} /></div>
             <p className="uo-empty">You have not ordered anything yet.</p>
             <Link to="/user" className="uo-cta">Find a truck near you</Link>
           </div>
@@ -66,13 +70,16 @@ export default function UserOrders() {
             {orders.map((order) => {
               const items = Array.isArray(order.items) ? order.items : []
               const count = items.reduce((sum, i) => sum + (i.quantity ?? 0), 0)
-              const live = LIVE.includes(order.status)
+              const live  = LIVE.includes(order.status)
 
               return (
                 <li key={order.orderId} className="uo-card">
                   <div className="uo-card-head">
                     <div>
-                      <p className="uo-truck">{order.truckName ?? 'Your truck'}</p>
+                      <p className="uo-truck">
+                        <IconTruck size={13} />
+                        {order.truckName ?? 'Your truck'}
+                      </p>
                       <p className="uo-when">{formatWhen(order.createdAt)}</p>
                     </div>
                     <span
@@ -107,6 +114,7 @@ export default function UserOrders() {
                       onClick={() => navigate(`/user/track/${order.orderId}`)}
                     >
                       Track this order
+                      <IconChevronRight size={14} />
                     </button>
                   )}
                 </li>

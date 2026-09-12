@@ -1,7 +1,5 @@
 import { get } from '../../api.js'
 import { slugify, iconFor } from './catalog.js'
-
-
 export function formatTime(t) {
   if (!t) return ''
   const [h, m] = String(t).split(':')
@@ -11,7 +9,6 @@ export function formatTime(t) {
   const display = hour % 12 === 0 ? 12 : hour % 12
   return `${display}:${m ?? '00'} ${suffix}`
 }
-
 export function windowState(arrival, departure) {
   const now = new Date()
   const mins = now.getHours() * 60 + now.getMinutes()
@@ -27,11 +24,9 @@ export function windowState(arrival, departure) {
   if (mins >= a) return 'here'
   return 'upcoming'
 }
-
 export async function fetchAreaCatalog(stationId) {
   const raw = await get(`/api/v1/stations/${stationId}/trucks`, false)
   const rows = Array.isArray(raw) ? raw : []
-
   const trucks = rows.map((r) => ({
     id: r.truckId,
     name: r.truckName,
@@ -44,7 +39,6 @@ export async function fetchAreaCatalog(stationId) {
     state: windowState(r.arrivalTime, r.departureTime),
     items: [],
   }))
-
   const items = []
   rows.forEach((r, idx) => {
     const truck = trucks[idx]
@@ -81,10 +75,8 @@ export async function fetchAreaCatalog(stationId) {
   const categories = [...counts.values()]
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
     .map((c) => ({ ...c, icon: iconFor(c.id) }))
-
   return { trucks, items, categories }
 }
-
 export function groupByDish(items) {
   const byName = new Map()
   items.forEach((i) => {

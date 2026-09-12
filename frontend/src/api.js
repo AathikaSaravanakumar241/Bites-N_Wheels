@@ -1,17 +1,13 @@
 import { getSession, setSession, clearSession } from './session.js'
-
 const TOKEN_KEY = 'bnw_token'export function getToken() {
   return getSession(TOKEN_KEY)
 }
-
 export function saveToken(token) {
   setSession(TOKEN_KEY, token)
 }
-
 export function clearToken() {
   clearSession()
 }
-
 function buildOptions(method, body, auth = true) {
   const headers = { 'Content-Type': 'application/json' }
   if (auth) {
@@ -22,7 +18,6 @@ function buildOptions(method, body, auth = true) {
   if (body !== undefined) options.body = JSON.stringify(body)
   return options
 }
-
 async function request(url, method, body, auth = true) {
   const res = await fetch(url, buildOptions(method, body, auth))  if ((res.status === 401 || res.status === 403) && auth) {
     clearToken()
@@ -31,7 +26,6 @@ async function request(url, method, body, auth = true) {
       window.location.assign('/login?expired=1')
     }
   }
-
   if (!res.ok) {
     let msg = `${method} ${url} failed with ${res.status}`
     try {
@@ -43,23 +37,18 @@ async function request(url, method, body, auth = true) {
     error.status = res.status
     throw error
   }
-
   if (res.status === 204) return null
   return res.json()
 }
-
 export function describeError(err, fallback = 'Something went wrong.') {
   if (!err) return fallback  if (err.status === undefined || err.status === 502 || err.status === 503 || err.status === 504) {
     return 'Cannot reach the server. Check that the backend is running on port 8080.'
   }
-
   if (err.status === 401 || err.status === 403) {
     return 'Your session has expired. Please sign in again.'
   }
-
   return err.message || `${fallback} (HTTP ${err.status})`
 }
-
 export const get   = (url, auth = true)       => request(url, 'GET',    undefined, auth)
 export const post  = (url, body, auth = true) => request(url, 'POST',   body,      auth)
 export const put   = (url, body, auth = true) => request(url, 'PUT',    body,      auth)

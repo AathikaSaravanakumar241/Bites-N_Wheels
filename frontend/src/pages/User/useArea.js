@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { get } from '../../api.js'
-
-
 const AREA_KEY = 'bnw_area'
 const EVENT = 'bnw-area-change'
-
 function read() {
   try {
     const raw = localStorage.getItem(AREA_KEY)
@@ -13,10 +10,8 @@ function read() {
     return null
   }
 }
-
 export function useArea() {
   const [area, setAreaState] = useState(read)
-
   useEffect(() => {
     const sync = () => setAreaState(read())
     window.addEventListener(EVENT, sync)
@@ -26,7 +21,6 @@ export function useArea() {
       window.removeEventListener('storage', sync)
     }
   }, [])
-
   const setArea = useCallback((next) => {
     try {
       if (next) localStorage.setItem(AREA_KEY, JSON.stringify(next))
@@ -36,10 +30,8 @@ export function useArea() {
     setAreaState(next)
     window.dispatchEvent(new Event(EVENT))
   }, [])
-
   return { area, setArea }
 }
-
 export function fetchStations() {
   return get('/api/v1/stations', false).then((d) => (Array.isArray(d) ? d : []))
 }

@@ -11,10 +11,8 @@ export const CATEGORIES = [
   { id: 'desserts', label: 'Desserts',  icon: '🍩' },
   { id: 'icecream', label: 'Ice Cream', icon: '🍦' },
 ]
-
 export const CUISINES = ['South Indian', 'North Indian', 'Chinese', 'Italian', 'Mexican']
 export const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy']
-
 export const TRUCKS = [
   {
     id: 1,
