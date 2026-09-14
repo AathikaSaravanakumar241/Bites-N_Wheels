@@ -31,6 +31,12 @@ export const IconArrowLeft = ({ size = 16 }) => (
   </svg>
 )
 
+export const IconArrowRight = ({ size = 16 }) => (
+  <svg {...base} width={size} height={size} viewBox="0 0 24 24">
+    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+  </svg>
+)
+
 export const IconShoppingBag = ({ size = 18 }) => (
   <svg {...base} width={size} height={size} viewBox="0 0 24 24">
     <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />

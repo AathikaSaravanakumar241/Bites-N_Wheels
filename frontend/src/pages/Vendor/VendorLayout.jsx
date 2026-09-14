@@ -71,12 +71,13 @@ export default function VendorLayout({ title, subtitle, actions, children }) {
         <div className="vl-side-bottom">
           <button
             type="button"
-            className="vl-toggle-minimal"
+            className={`vl-toggle-minimal ${isOpen ? 'is-stop' : 'is-start'}`}
             onClick={() => {
               Promise.resolve(setIsOpen(!isOpen)).catch(() => {})
             }}
             aria-pressed={isOpen}
           >
+            <span className={`vl-toggle-dot ${isOpen ? 'is-stop' : 'is-start'}`} aria-hidden="true" />
             {isOpen ? 'Stop taking orders' : 'Start taking orders'}
           </button>
         </div>

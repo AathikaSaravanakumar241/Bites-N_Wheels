@@ -4,14 +4,15 @@ import { useCart } from './CartContext.jsx'
 import { useArea } from './useArea.js'
 import { iconFor } from './catalog.js'
 import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
-import { IconShoppingBag, IconArrowLeft, IconClock, IconTruck } from '../../icons.jsx'
+import { IconShoppingBag, IconArrowLeft, IconClock, IconTruck, IconArrowRight } from '../../icons.jsx'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './Category.css'
 
 export default function CategoryPage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
   const { area } = useArea()
-  const { count } = useCart()
+  const { count, subtotal } = useCart()
 
   const [trucks, setTrucks] = useState([])
   const [items, setItems] = useState([])
@@ -181,9 +182,10 @@ export default function CategoryPage() {
           )}
 
           {loading ? (
-            <div className="cp-dishes">
-              {[...Array(4)].map((_, i) => <div key={i} className="cp-dish-skeleton" />)}
-            </div>
+            <FoodTruckLoader
+              message={`Fetching delicious ${category.label.toLowerCase()}…`}
+              subtext={`Checking truck menus and pricing in ${area.name}`}
+            />
           ) : dishes.length === 0 ? (
             <p className="cp-empty">
               No {category.label.toLowerCase()} coming to {area.name} today.
@@ -207,6 +209,35 @@ export default function CategoryPage() {
           )}
         </main>
       </div>
+
+      {/* ─── STICKY CHECKOUT BAR ─── */}
+      {count > 0 && (
+        <div className="cp-checkout-bar" role="region" aria-label="Cart summary">
+          <div className="cp-checkout-inner">
+            <div className="cp-checkout-left">
+              <div className="cp-checkout-badge">
+                <IconShoppingBag size={18} />
+              </div>
+              <div className="cp-checkout-info">
+                <span className="cp-checkout-count">
+                  {count} {count === 1 ? 'item' : 'items'}
+                </span>
+                {subtotal > 0 && (
+                  <span className="cp-checkout-sub">₹{subtotal}</span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="cp-checkout-cta"
+              onClick={() => navigate('/user/cart')}
+            >
+              <span>View Cart</span>
+              <IconArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

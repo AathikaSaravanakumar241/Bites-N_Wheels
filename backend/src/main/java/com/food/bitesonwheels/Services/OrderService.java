@@ -49,6 +49,17 @@ public class OrderService {
             MenuItem menuItem = menuItemRepository.findById(cartItem.getFoodId())
                     .orElseThrow(() -> new RuntimeException("Item not found: " + cartItem.getFoodId()));
 
+            
+            if (menuItem.getStockQuantity() != null) {
+                int remaining = menuItem.getStockQuantity() - cartItem.getQuantity();
+                if (remaining < 0) {
+                    throw new RuntimeException("Not enough stock for: " + menuItem.getName()
+                            + " (requested " + cartItem.getQuantity() + ", available " + menuItem.getStockQuantity() + ")");
+                }
+                menuItem.setStockQuantity(remaining);
+                menuItemRepository.save(menuItem);
+            }
+
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .item(menuItem)

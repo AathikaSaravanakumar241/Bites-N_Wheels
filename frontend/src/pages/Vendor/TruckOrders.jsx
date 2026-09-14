@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { get as apiGet, patch as apiPatch, describeError } from "../../api.js";
+import FoodTruckLoader from "../../components/FoodTruckLoader.jsx";
 import "./TruckOrders.css";
 
 const API_URL = "/api/v1/truck/orders";
@@ -251,9 +252,11 @@ function TruckOrders() {
         </div>
 
         {loading && orders.length === 0 ? (
-          <div className="to-empty-msg">
-            <p>Loading real-time orders…</p>
-          </div>
+          <FoodTruckLoader
+            message="Loading real-time orders…"
+            subtext="Connecting to food truck order dispatch"
+            compact
+          />
         ) : filteredOrders.length === 0 ? (
           <div className="to-empty-msg">
             <h3>No orders found</h3>

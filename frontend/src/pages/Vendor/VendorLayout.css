@@ -205,21 +205,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1.5px solid #cbd5e1;
-  background: #ffffff;
-  color: #334155;
-  font: 600 13px var(--sans);
+  font: 700 13px var(--sans);
   cursor: pointer;
-  transition: all 160ms ease;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.vl-toggle-minimal:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-  color: #0f172a;
+.vl-toggle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 180ms ease;
+}
+
+/* ─── WHEN STOPPING: RED COLOR ─── */
+.vl-toggle-minimal.is-stop {
+  background: #fef2f2;
+  border: 1.5px solid #f87171;
+  color: #dc2626;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08);
+}
+
+.vl-toggle-dot.is-stop {
+  background: #dc2626;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.6);
+}
+
+.vl-toggle-minimal.is-stop:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+  transform: translateY(-1px);
+}
+
+.vl-toggle-minimal.is-stop:hover .vl-toggle-dot.is-stop {
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+.vl-toggle-minimal.is-stop:active {
+  transform: translateY(0);
+}
+
+/* ─── WHEN STARTING: GREEN COLOR ─── */
+.vl-toggle-minimal.is-start {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  color: #16a34a;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.08);
+}
+
+.vl-toggle-dot.is-start {
+  background: #16a34a;
+  box-shadow: 0 0 6px rgba(22, 163, 74, 0.6);
+}
+
+.vl-toggle-minimal.is-start:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+  transform: translateY(-1px);
+}
+
+.vl-toggle-minimal.is-start:hover .vl-toggle-dot.is-start {
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+.vl-toggle-minimal.is-start:active {
+  transform: translateY(0);
 }
 
 .vl-body {

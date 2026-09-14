@@ -17,10 +17,12 @@ import VendorOrdersPage from "./pages/Vendor/VendorOrdersPage.jsx";
 import VendorMenuPage from "./pages/Vendor/VendorMenuPage.jsx";
 import VendorBillingPage from "./pages/Vendor/VendorBillingPage.jsx";
 import { CartProvider } from "./pages/User/CartContext.jsx";
+import RouteProgressBar from "./components/RouteProgressBar.jsx";
 import "./App.css";
 function App() {
   return (
     <CartProvider>
+      <RouteProgressBar />
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />

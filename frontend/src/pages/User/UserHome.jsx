@@ -5,6 +5,7 @@ import { useArea } from './useArea.js'
 import AreaPicker from './AreaPicker.jsx'
 import { fetchAreaCatalog, formatTime, groupByDish } from './areaCatalog.js'
 import logo from '../../assets/logo.jpeg'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './UserHome.css'
 
 const IconMapPin = () => (
@@ -315,11 +316,10 @@ export default function UserHome() {
             {error && <p className="uh-empty">{error}</p>}
 
             {loading ? (
-              <div className="uh-dishes">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="uh-dish-skeleton" />
-                ))}
-              </div>
+              <FoodTruckLoader
+                message={`Rolling into ${area.name}…`}
+                subtext="Finding active food trucks and fresh menus nearby"
+              />
             ) : dishes.length === 0 ? (
               <p className="uh-empty">
                 {items.length === 0

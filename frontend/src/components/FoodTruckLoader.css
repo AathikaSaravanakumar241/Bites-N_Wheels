@@ -1,0 +1,292 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FOOD TRUCK ANIMATED LOADER (Delightful, No-Spinner Experience)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.ftl-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  user-select: none;
+}
+
+.ftl-container.is-fullpage {
+  min-height: 60vh;
+  width: 100%;
+}
+
+.ftl-container.is-compact {
+  padding: 20px 12px;
+}
+
+/* ─── SCENE WRAPPER ─── */
+.ftl-scene {
+  position: relative;
+  width: 220px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ftl-container.is-compact .ftl-scene {
+  transform: scale(0.85);
+  margin-bottom: -10px;
+}
+
+/* ─── FLOATING AROMA / FOOD ICONS ─── */
+.ftl-flavor-float {
+  position: absolute;
+  top: 10px;
+  font-size: 18px;
+  opacity: 0;
+  pointer-events: none;
+  animation: flavor-rise 2.2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+}
+
+.ftl-flavor-1 { left: 45px; animation-delay: 0s; }
+.ftl-flavor-2 { left: 85px; animation-delay: 0.7s; }
+.ftl-flavor-3 { left: 125px; animation-delay: 1.4s; }
+
+@keyframes flavor-rise {
+  0% {
+    transform: translate(0, 20px) scale(0.6) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+    transform: translate(4px, 0px) scale(1) rotate(8deg);
+  }
+  70% {
+    opacity: 0.7;
+    transform: translate(-6px, -24px) scale(0.95) rotate(-6deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(6px, -45px) scale(0.8) rotate(12deg);
+  }
+}
+
+/* ─── SPEED LINES ─── */
+.ftl-speed-lines {
+  position: absolute;
+  left: -20px;
+  top: 45%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ftl-speed-line {
+  height: 2.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(234, 88, 12, 0.8), transparent);
+  animation: speed-dash 0.8s ease-in-out infinite;
+}
+
+.ftl-speed-line:nth-child(1) { width: 32px; animation-delay: 0.1s; }
+.ftl-speed-line:nth-child(2) { width: 44px; animation-delay: 0.3s; }
+.ftl-speed-line:nth-child(3) { width: 24px; animation-delay: 0s; }
+
+@keyframes speed-dash {
+  0% {
+    transform: translateX(10px) scaleX(0.4);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-12px) scaleX(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-28px) scaleX(0.2);
+    opacity: 0;
+  }
+}
+
+/* ─── TRUCK RIG (BOUNCE) ─── */
+.ftl-truck-rig {
+  position: relative;
+  z-index: 2;
+  animation: truck-drive-bounce 0.7s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+}
+
+@keyframes truck-drive-bounce {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3.5px) rotate(-0.5deg);
+  }
+  100% {
+    transform: translateY(0.5px) rotate(0.6deg);
+  }
+}
+
+/* ─── TRUCK SVG ELEMENTS ─── */
+.ftl-svg {
+  width: 170px;
+  height: 105px;
+  overflow: visible;
+  filter: drop-shadow(0 8px 16px rgba(234, 88, 12, 0.18));
+}
+
+/* ─── EXHAUST SMOKE ─── */
+.ftl-smoke {
+  animation: exhaust-puff 1.2s ease-out infinite;
+  transform-origin: 15px 75px;
+}
+
+@keyframes exhaust-puff {
+  0% {
+    transform: scale(0.3) translate(0, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+    transform: scale(0.8) translate(-6px, -4px);
+  }
+  80% {
+    opacity: 0.3;
+    transform: scale(1.3) translate(-16px, -12px);
+  }
+  100% {
+    transform: scale(1.6) translate(-22px, -18px);
+    opacity: 0;
+  }
+}
+
+/* ─── WHEELS ROTATING ─── */
+.ftl-wheel-rotate {
+  animation: wheel-spin 0.55s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes wheel-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── ROAD STRIP ─── */
+.ftl-road-track {
+  position: absolute;
+  bottom: 18px;
+  width: 190px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ftl-road-lines {
+  width: 300%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #ea580c 0,
+    #ea580c 14px,
+    transparent 14px,
+    transparent 28px
+  );
+  animation: road-slide 0.7s linear infinite;
+}
+
+@keyframes road-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-56px);
+  }
+}
+
+/* ─── TEXT & PROGRESS PULSE ─── */
+.ftl-text-wrap {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ftl-title {
+  margin: 0;
+  font-family: var(--sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.2px;
+}
+
+.ftl-sub {
+  margin: 0;
+  font-family: var(--sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Shimmer Progress Track */
+.ftl-progress-track {
+  margin-top: 6px;
+  width: 140px;
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ftl-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 45%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.45);
+  animation: progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  0% {
+    left: -40%;
+    width: 30%;
+  }
+  50% {
+    left: 40%;
+    width: 50%;
+  }
+  100% {
+    left: 110%;
+    width: 30%;
+  }
+}
+
+/* ─── TOP ROUTE PROGRESS BAR (FOR INSTANT PAGE TRANSITIONS) ─── */
+.ftl-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  z-index: 9999;
+  background: linear-gradient(90deg, #ea580c 0%, #f97316 40%, #fbbf24 80%, #ea580c 100%);
+  background-size: 200% 100%;
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.6);
+  animation: top-bar-glow 1.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes top-bar-glow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
