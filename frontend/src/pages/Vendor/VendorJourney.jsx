@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import VendorLayout from './VendorLayout.jsx'
 import { get, post, describeError } from '../../api.js'
 import { IconMap } from '../../icons.jsx'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './VendorJourney.css'
 
 const SETUP_URL = '/api/v1/truck/today-setup'
@@ -192,7 +193,11 @@ export default function VendorJourney() {
 
           <div className="vj-locations-list">
             {loading ? (
-              <p className="vj-muted-msg">Loading available areas…</p>
+              <FoodTruckLoader
+                message="Mapping service areas…"
+                subtext="Checking available spots on your route"
+                compact
+              />
             ) : available.length === 0 ? (
               <p className="vj-muted-msg">
                 {query ? 'No matching locations found.' : 'All locations are already added to your route.'}

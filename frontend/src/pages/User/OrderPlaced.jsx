@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { get as apiGet } from '../../api.js'
 import { useCart } from './CartContext.jsx'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './OrderPlaced.css'
 export default function OrderPlaced() {
   const { orderId } = useParams()
@@ -23,7 +24,10 @@ export default function OrderPlaced() {
     return (
       <div className="op">
         <div className="op-card">
-          <p className="op-sub">Loading your order…</p>
+          <FoodTruckLoader
+            message="Confirming your order with the food truck…"
+            subtext="Sending order ticket to the kitchen chef"
+          />
         </div>
       </div>
     )

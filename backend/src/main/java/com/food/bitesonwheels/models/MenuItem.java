@@ -61,5 +61,7 @@ public class MenuItem {
     @Column(name = "available_from")
     private LocalTime availableFrom;
 
-    
+    public Long getTruckId() {
+        return truck != null ? truck.getTruckId() : null;
+    }
 }

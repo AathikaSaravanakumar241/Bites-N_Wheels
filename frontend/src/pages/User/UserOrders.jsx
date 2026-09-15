@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { get as apiGet } from '../../api.js'
-import { IconArrowLeft, IconTruck, IconLoader, IconChevronRight } from '../../icons.jsx'
+import { IconArrowLeft, IconTruck, IconChevronRight } from '../../icons.jsx'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './UserOrders.css'
 
 const LIVE = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY']
@@ -20,22 +21,37 @@ function formatWhen(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleString('en-IN', {
-    day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   })
 }
 
 export default function UserOrders() {
   const navigate = useNavigate()
-  const [orders, setOrders]   = useState([])
+  const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
+    let active = true
     apiGet('/api/v1/orders')
-      .then((data) => setOrders(Array.isArray(data) ? data : []))
-      .catch((err) => setError(err.message || 'Could not load your orders.'))
-      .finally(() => setLoading(false))
+      .then((data) => {
+        if (!active) return
+        setOrders(Array.isArray(data) ? data : [])
+      })
+      .catch((err) => {
+        if (!active) return
+        setError(err?.message || 'Could not load your orders.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
   }, [])
 
   return (
@@ -49,10 +65,10 @@ export default function UserOrders() {
 
       <main className="uo-main">
         {loading && (
-          <div className="uo-loading">
-            <IconLoader size={24} />
-            <p>Loading your orders…</p>
-          </div>
+          <FoodTruckLoader
+            message="Fetching your orders…"
+            subtext="Connecting with food trucks for live status"
+          />
         )}
 
         {!loading && error && <p className="uo-error">{error}</p>}

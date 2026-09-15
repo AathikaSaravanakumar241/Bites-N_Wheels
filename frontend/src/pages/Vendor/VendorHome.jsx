@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import VendorLayout from './VendorLayout.jsx'
 import { useVendorStatus } from './useVendorStatus.jsx'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './VendorHome.css'
 import { get as apiGet, describeError } from '../../api.js'
 
@@ -169,9 +170,11 @@ export default function VendorHome() {
 
         <div className="vh-orders-container">
           {loading ? (
-            <div className="vh-loading-wrap">
-              <p className="vh-muted">Loading orders…</p>
-            </div>
+            <FoodTruckLoader
+              message="Syncing live truck orders…"
+              subtext="Connecting with food truck order queue"
+              compact
+            />
           ) : filteredOrders.length === 0 ? (
             <div className="vh-empty-state">
               <h3 className="vh-empty-title">

@@ -100,6 +100,12 @@ public class TruckController {
         return ResponseEntity.ok(truckService.getMyMenuItems());
     }
 
+    @DeleteMapping("/menu-items/{itemId}")
+    public ResponseEntity<Void> deleteMenuItem(@PathVariable Long itemId) {
+        truckService.deleteMenuItem(itemId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/today-setup")
     public ResponseEntity<List<TruckSchedule>> setupToday(
             @RequestBody List<Map<String, Object>> stations) {

@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
 import { useArea } from './useArea.js'
 import { fetchAreaCatalog, formatTime } from './areaCatalog.js'
-import { IconShoppingBag, IconArrowLeft, IconClock, IconMinus, IconPlus } from '../../icons.jsx'
+import { IconShoppingBag, IconArrowLeft, IconClock, IconMinus, IconPlus, IconArrowRight } from '../../icons.jsx'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './FoodTrucks.css'
 
 export default function FoodTrucks() {
@@ -59,6 +60,11 @@ export default function FoodTrucks() {
     )
   }
 
+  const cartSubtotal = useMemo(() => {
+    // estimate: sum price * qty for items in cart via qtyOf
+    return options.reduce((sum, opt) => sum + opt.price * (qtyOf(opt.id) || 0), 0)
+  }, [options, count]) // eslint-disable-line
+
   return (
     <div className="ft">
       <div className="ft-bar">
@@ -83,9 +89,10 @@ export default function FoodTrucks() {
         {error && <p className="ft-empty">{error}</p>}
 
         {loading ? (
-          <div className="ft-list">
-            {[...Array(3)].map((_, i) => <div key={i} className="ft-card-skeleton" />)}
-          </div>
+          <FoodTruckLoader
+            message={`Tracking down ${dish || 'fresh bites'}…`}
+            subtext={`Checking which food trucks are serving this in ${area.name}`}
+          />
         ) : options.length === 0 ? (
           <p className="ft-empty">
             No truck is bringing {dish} to {area.name} today.
@@ -175,6 +182,35 @@ export default function FoodTrucks() {
           </>
         )}
       </div>
+
+      {/* ─── STICKY CHECKOUT BAR ─── */}
+      {count > 0 && (
+        <div className="ft-checkout-bar" role="region" aria-label="Cart summary">
+          <div className="ft-checkout-inner">
+            <div className="ft-checkout-left">
+              <div className="ft-checkout-badge">
+                <IconShoppingBag size={18} />
+              </div>
+              <div className="ft-checkout-info">
+                <span className="ft-checkout-count">
+                  {count} {count === 1 ? 'item' : 'items'}
+                </span>
+                {cartSubtotal > 0 && (
+                  <span className="ft-checkout-sub">₹{cartSubtotal}</span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="ft-checkout-cta"
+              onClick={() => navigate('/user/cart')}
+            >
+              <span>View Cart</span>
+              <IconArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

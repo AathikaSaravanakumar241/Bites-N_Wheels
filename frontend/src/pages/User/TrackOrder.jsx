@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { get } from '../../api.js'
+import FoodTruckLoader from '../../components/FoodTruckLoader.jsx'
 import './TrackOrder.css'
 
 const STEPS = [
@@ -60,7 +61,13 @@ export default function TrackOrder() {
             <h1 className="tk-title">Track order</h1>
           </div>
         </div>
-        <div className="tk-main"><p className="tk-empty">Loading order…</p></div>
+        <div className="tk-main">
+          <FoodTruckLoader
+            message="Connecting to food truck kitchen…"
+            subtext="Fetching live preparation status"
+            fullPage
+          />
+        </div>
       </div>
     )
   }

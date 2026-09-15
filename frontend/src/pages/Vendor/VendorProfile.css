@@ -571,13 +571,16 @@
 }
 
 .vp-quick-toggle-btn.is-open {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #334155;
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #dc2626;
 }
 
 .vp-quick-toggle-btn.is-open:hover {
-  background: #e2e8f0;
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .vp-quick-toggle-btn.is-closed {

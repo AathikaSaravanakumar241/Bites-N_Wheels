@@ -111,9 +111,20 @@ public class TruckService {
         item.setStockQuantity(stockQty);
         return menuItemRepository.save(item);
     }
-     public List<MenuItem> getMyMenuItems() {
+    public List<MenuItem> getMyMenuItems() {
         Truck truck = getCurrentTruck();
         return menuItemRepository.findByTruckTruckId(truck.getTruckId());
+    }
+
+    @Transactional
+    public void deleteMenuItem(Long itemId) {
+        Truck truck = getCurrentTruck();
+        MenuItem item = menuItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Food item not found"));
+        if (!item.getTruck().getTruckId().equals(truck.getTruckId())) {
+            throw new RuntimeException("You can only delete your own truck's menu items");
+        }
+        menuItemRepository.delete(item);
     }
     @Transactional 
     public List<TruckSchedule> setupToday(List<Map<String,Object>> stations){
