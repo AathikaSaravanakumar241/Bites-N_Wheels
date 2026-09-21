@@ -141,12 +141,12 @@ The full API reference and the database ER diagram are in [`docs/`](docs).
 
 ---
 
-## Contributing
+## Contributions
 
 We're open to collaboration. To report a bug, suggest a feature or discuss an
-idea, open an issue. To contribute code:
+idea, open an issue. For code contributions, please follow
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-1. Fork the repository
-2. Create a branch: `git checkout -b feature/your-feature`
-3. Commit your changes and push the branch
-4. Open a pull request against `main`
+## License
+
+This project is licensed under the [MIT License](LICENSE).
